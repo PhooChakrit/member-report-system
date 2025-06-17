@@ -64,11 +64,16 @@ class MemberReportSystem {
 
         const convertToBuddhistYear = (instance) => {
             setTimeout(() => {
-                const yearElements = instance.calendarContainer.querySelectorAll(".cur-year");
-                yearElements.forEach(el => {
-                    const year = parseInt(el.value);
-                    if (!isNaN(year)) {
-                        el.value = year + 543;
+                const yearInputs = instance.calendarContainer.querySelectorAll(".cur-year");
+                yearInputs.forEach(el => {
+                    let year = parseInt(el.value || el.textContent);
+                    if (!isNaN(year) && year < 2500) {
+                        const buddhistYear = year + 543;
+                        if (el.tagName === "INPUT") {
+                            el.value = buddhistYear;
+                        } else {
+                            el.textContent = buddhistYear;
+                        }
                     }
                 });
             }, 5);
