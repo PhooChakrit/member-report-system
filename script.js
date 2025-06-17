@@ -47,6 +47,8 @@ class MemberReportSystem {
         this.selectedDate = today;
 
         document.getElementById("current-date").textContent = `ข้อมูล ณ วันที่ ${buddhistFormatted}`;
+        this.generateReport();
+
     }
 
 
@@ -144,11 +146,8 @@ class MemberReportSystem {
 
     async fetchMemberData(isoDate) {
         try {
-            const proxyUrl = this.getCorsProxyUrl(
-                `https://learningportal.ocsc.go.th/learningspaceapi/reports/1?lastdate=${isoDate}`
-            );
-
-            const response = await axios.get(proxyUrl);
+            const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/1?lastdate=${isoDate}`;
+            const response = await axios.get(apiUrl);
 
             if (response.status === 404) {
                 throw new Error('404 Not Found - ไม่พบข้อมูล');
@@ -161,7 +160,7 @@ class MemberReportSystem {
             }
 
             const data = response.data;
-            console.log('Fetched data:', data);
+            // console.log('Fetched data:', data);
 
 
             if (!data || !Array.isArray(data.x) || !Array.isArray(data.y)) {
@@ -226,10 +225,6 @@ class MemberReportSystem {
             document.getElementById('loading').classList.remove('show');
         }
     }
-
-
-
-
     renderTable(data) {
         const tableBody = document.getElementById('table-body');
         tableBody.innerHTML = '';
@@ -244,16 +239,23 @@ class MemberReportSystem {
 
         const total = data.counts.reduce((sum, count) => sum + count, 0);
 
+        const rawPercentages = data.counts.map(c => (total > 0 ? (c / total) * 100 : 0));
+        const roundedPercentages = rawPercentages.map(p => Math.round(p * 100) / 100);
+        let percentageSum = roundedPercentages.reduce((a, b) => a + b, 0);
+
+        let adjustment = Math.round((100 - percentageSum) * 100) / 100;
+        roundedPercentages[roundedPercentages.length - 1] += adjustment;
+
         data.categories.forEach((category, index) => {
             const count = data.counts[index] || 0;
-            const percentage = total > 0 ? ((count / total) * 100).toFixed(2) : '0.00';
+            const percentage = roundedPercentages[index].toFixed(2);
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${category || 'ไม่มีชื่อประเภท'}</td>
-                <td>${count.toLocaleString()}</td>
-                <td>${percentage}%</td>
-            `;
+        <td>${category || 'ไม่มีชื่อประเภท'}</td>
+        <td>${count.toLocaleString()}</td>
+        <td>${percentage}%</td>
+    `;
             tableBody.appendChild(row);
         });
 
@@ -346,10 +348,16 @@ class MemberReportSystem {
         ];
 
         const total = this.currentData.total;
+        const buddhistDateStr = this.formatBuddhistDate(this.selectedDate || new Date());
+        const rawPercentages = this.currentData.counts.map(c => (total > 0 ? (c / total) * 100 : 0));
+        const roundedPercentages = rawPercentages.map(p => Math.round(p * 100) / 100);
+        let percentageSum = roundedPercentages.reduce((a, b) => a + b, 0);
+        let adjustment = Math.round((100 - percentageSum) * 100) / 100;
+        roundedPercentages[roundedPercentages.length - 1] += adjustment;
 
         this.currentData.categories.forEach((category, index) => {
             const count = this.currentData.counts[index] || 0;
-            const percentage = total > 0 ? ((count / total) * 100).toFixed(2) : '0.00';
+            const percentage = roundedPercentages[index].toFixed(2);
 
             excelData.push([
                 category || 'ไม่มีชื่อประเภท',
@@ -358,11 +366,15 @@ class MemberReportSystem {
             ]);
         });
 
+
         excelData.push([
             'รวมทั้งหมด',
             total,
-            '100.00%'
+            '100.00%',
         ]);
+        excelData.push([]);
+        excelData.push([`ข้อมูล ณ วันที่ ${buddhistDateStr}`])
+
 
         const ws = XLSX.utils.aoa_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
@@ -371,6 +383,9 @@ class MemberReportSystem {
         const dateInput = document.getElementById('report-date');
         const christianDate = dateInput.dataset.isoDate.replace(/-/g, '');
         XLSX.writeFile(wb, `member_report_${christianDate}.xlsx`);
+
+
+
     }
 }
 
