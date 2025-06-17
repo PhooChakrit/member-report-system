@@ -94,13 +94,15 @@ class MemberReportSystem {
                 convertToBuddhistYear(instance);
             },
             onChange: (selectedDates, dateStr, instance) => {
-                convertToBuddhistYear(instance);
-                overrideDisplayedDate(instance);
-
+                if (selectedDates.length === 0) return;
                 this.selectedDate = selectedDates[0];
                 this.selectedDate.setHours(12, 0, 0, 0);
-
                 document.getElementById("report-date").dataset.isoDate = this.selectedDate.toISOString().split('T')[0];
+                setTimeout(() => {
+                    const buddhistDateStr = this.formatBuddhistDate(this.selectedDate);
+                    instance.input.value = buddhistDateStr;
+                    document.getElementById("current-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
+                }, 0);
             }
 
 
