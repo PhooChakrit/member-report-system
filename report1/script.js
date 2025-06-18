@@ -1,112 +1,26 @@
+import { setupThaiDatePicker, formatBuddhistDate, setDefaultThaiDate } from '../component/datepicker.js';
 
 class MemberReportSystem {
     constructor() {
         this.chartInstance = null;
         this.currentData = null;
-        this.init();
         this.selectedDate = null;
+        this.init();
     }
 
     init() {
-        this.setupDatePicker();
-        this.setupEventListeners();
-        this.setDefaultDate();
-    }
-
-    getThaiMonth(month) {
-        const thaiMonths = [
-            'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-            'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-        ];
-        return thaiMonths[month - 1];
-    }
-
-    formatThaiDate(dateStr) {
-        const [day, month, year] = dateStr.split('/');
-        const thaiMonth = this.getThaiMonth(parseInt(month));
-        return `${parseInt(day)} ${thaiMonth} ${year}`;
-    }
-
-    formatBuddhistDate(date) {
-        const monthsThai = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-            "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-        const day = date.getDate();
-        const month = monthsThai[date.getMonth()];
-        const year = date.getFullYear() + 543;
-        return `${day} ${month} ${year}`;
-    }
-
-    setDefaultDate() {
-        const today = new Date();
-        today.setHours(12, 0, 0, 0);
-
-        const buddhistFormatted = this.formatBuddhistDate(today);
-        const dateInput = document.getElementById('report-date');
-        dateInput.value = buddhistFormatted;
-        dateInput.dataset.isoDate = today.toISOString().split('T')[0];
-        this.selectedDate = today;
-
-        document.getElementById("current-date").textContent = `ข้อมูล ณ วันที่ ${buddhistFormatted}`;
-        this.generateReport();
-
-    }
-
-
-
-    setupDatePicker() {
-        const overrideDisplayedDate = (instance) => {
-            if (instance.selectedDates.length > 0) {
-                const date = instance.selectedDates[0];
-                const display = this.formatBuddhistDate(date);
-                instance.input.value = display;
-            }
-        };
-
-        const convertToBuddhistYear = (instance) => {
-            setTimeout(() => {
-                const yearInputs = instance.calendarContainer.querySelectorAll(".cur-year");
-                yearInputs.forEach(el => {
-                    let year = parseInt(el.value || el.textContent);
-                    if (!isNaN(year) && year < 2500) {
-                        const buddhistYear = year + 543;
-                        if (el.tagName === "INPUT") {
-                            el.value = buddhistYear;
-                        } else {
-                            el.textContent = buddhistYear;
-                        }
-                    }
-                });
-            }, 5);
-        };
-
-        flatpickr("#report-date", {
-            locale: "th",
-            dateFormat: "d M Y",
-            defaultDate: "today",
-            onReady: (selectedDates, dateStr, instance) => {
-                convertToBuddhistYear(instance);
-                overrideDisplayedDate(instance);
-            },
-            onMonthChange: (selectedDates, dateStr, instance) => {
-                convertToBuddhistYear(instance);
-            },
-            onYearChange: (selectedDates, dateStr, instance) => {
-                convertToBuddhistYear(instance);
-            },
-            onChange: (selectedDates, dateStr, instance) => {
-                if (selectedDates.length === 0) return;
-                this.selectedDate = selectedDates[0];
-                this.selectedDate.setHours(12, 0, 0, 0);
-                document.getElementById("report-date").dataset.isoDate = this.selectedDate.toISOString().split('T')[0];
-                setTimeout(() => {
-                    const buddhistDateStr = this.formatBuddhistDate(this.selectedDate);
-                    instance.input.value = buddhistDateStr;
-                    document.getElementById("current-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
-                }, 0);
-            }
-
-
+        setupThaiDatePicker('#report-date', (selectedDate) => {
+            this.selectedDate = selectedDate;
+            const buddhistDateStr = formatBuddhistDate(selectedDate);
+            document.getElementById("current-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
         });
+
+        this.selectedDate = setDefaultThaiDate('#report-date');
+        document.getElementById("current-date").textContent = 
+            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.selectedDate)}`;
+
+        this.setupEventListeners();
+        this.generateReport();
     }
 
     setupEventListeners() {
@@ -167,9 +81,6 @@ class MemberReportSystem {
             }
 
             const data = response.data;
-            // console.log('Fetched data:', data);
-
-
             if (!data || !Array.isArray(data.x) || !Array.isArray(data.y)) {
                 throw new Error('รูปแบบข้อมูลจาก API ไม่ถูกต้อง');
             }
@@ -207,8 +118,7 @@ class MemberReportSystem {
             this.renderTable(data);
             this.renderChart(data);
 
-
-            const buddhistDate = this.formatBuddhistDate(this.selectedDate || new Date(isoDate));
+            const buddhistDate = formatBuddhistDate(this.selectedDate || new Date(isoDate));
             document.getElementById("current-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDate}`;
             document.getElementById("report-title").innerHTML = `<i class="fas fa-users"></i> ${data.title}`;
 
@@ -232,6 +142,7 @@ class MemberReportSystem {
             document.getElementById('loading').classList.remove('show');
         }
     }
+
     renderTable(data) {
         const tableBody = document.getElementById('table-body');
         tableBody.innerHTML = '';
@@ -259,10 +170,10 @@ class MemberReportSystem {
 
             const row = document.createElement('tr');
             row.innerHTML = `
-        <td>${category || 'ไม่มีชื่อประเภท'}</td>
-        <td>${count.toLocaleString()}</td>
-        <td>${percentage}%</td>
-    `;
+                <td>${category || 'ไม่มีชื่อประเภท'}</td>
+                <td>${count.toLocaleString()}</td>
+                <td>${percentage}%</td>
+            `;
             tableBody.appendChild(row);
         });
 
@@ -295,11 +206,11 @@ class MemberReportSystem {
         }
 
         const colors = [
-            '#667eea',
-            '#764ba2',
-            '#f093fb',
-            '#f5576c',
-            '#4facfe'
+            '#003f5c',
+            '#58508d',
+            '#bc5090',
+            '#ff6361',
+            '#ffa600',
         ];
 
         this.chartInstance = new Chart(ctx, {
@@ -342,11 +253,6 @@ class MemberReportSystem {
         });
     }
 
-    updateCurrentDate(buddhistDate) {
-        const thaiDate = this.formatThaiDate(buddhistDate);
-        document.getElementById('current-date').textContent = `ข้อมูล ณ วันที่ ${thaiDate}`;
-    }
-
     exportToExcel() {
         if (!this.currentData) return;
 
@@ -355,7 +261,7 @@ class MemberReportSystem {
         ];
 
         const total = this.currentData.total;
-        const buddhistDateStr = this.formatBuddhistDate(this.selectedDate || new Date());
+        const buddhistDateStr = formatBuddhistDate(this.selectedDate || new Date());
         const rawPercentages = this.currentData.counts.map(c => (total > 0 ? (c / total) * 100 : 0));
         const roundedPercentages = rawPercentages.map(p => Math.round(p * 100) / 100);
         let percentageSum = roundedPercentages.reduce((a, b) => a + b, 0);
@@ -373,15 +279,13 @@ class MemberReportSystem {
             ]);
         });
 
-
         excelData.push([
             'รวมทั้งหมด',
             total,
             '100.00%',
         ]);
         excelData.push([]);
-        excelData.push([`ข้อมูล ณ วันที่ ${buddhistDateStr}`])
-
+        excelData.push([`ข้อมูล ณ วันที่ ${buddhistDateStr}`]);
 
         const ws = XLSX.utils.aoa_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
@@ -390,9 +294,6 @@ class MemberReportSystem {
         const dateInput = document.getElementById('report-date');
         const christianDate = dateInput.dataset.isoDate.replace(/-/g, '');
         XLSX.writeFile(wb, `member_report_${christianDate}.xlsx`);
-
-
-
     }
 }
 

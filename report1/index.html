@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบรายงานสมาชิก</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="report-title"> </h1>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <i class="fas fa-calendar-alt"></i>
+                เลือกวันที่รายงาน
+            </div>
+            <div class="date-picker-container">
+                <div class="date-input-group">
+                    <label for="report-date">วันที่ (พ.ศ.)</label>
+                    <div class="date-input-wrapper">
+                        <input type="text" id="report-date" class="date-input" placeholder="วว/ดด/ปปปป (พ.ศ.)" readonly>
+                        <i class="fas fa-calendar-alt date-icon"></i>
+                    </div>
+                </div>
+                <button id="submit-btn" class="submit-btn">
+                    <i class="fas fa-search"></i>
+                    Submit
+                </button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>กำลังโหลดข้อมูล...</p>
+        </div>
+
+        <div id="error-message" class="error-message">
+            <div id="error-content"></div>
+            <div id="error-details" class="error-details"></div>
+        </div>
+
+        <div id="results-container" class="results-container">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-table"></i>
+                    จำนวนสมาชิกแต่ละประเภท
+                </div>
+                <div class="current-date" id="current-date"></div>
+                <div class="table-wrapper">
+                    <table id="member-table">
+                        <thead>
+                            <tr>
+                                <th>ประเภทสมาชิก</th>
+                                <th>จำนวน (คน)</th>
+                                <th>เปอร์เซ็นต์ (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                        </tbody>
+                    </table>
+                </div>
+                <div style="text-align: right;">
+                    <button id="export-btn" class="export-btn">
+                        <i class="fas fa-file-excel"></i>
+                        Download Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-chart-pie"></i>
+                    จำนวนสมาชิกแต่ละประเภท
+                </div>
+                <div class="chart-container">
+                    <canvas id="members-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="module" src="script.js"></script>
+    <script type="module" src="../component/datepicker.js"></script>
+</body>
+
+</html>
