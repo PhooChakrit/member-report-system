@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบรายงานผู้เรียนตามรายวิชา (ช่วงเวลา)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="report-title">ระบบรายงานผู้เรียนตามรายวิชา</h1>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <i class="fas fa-calendar-alt"></i>
+                เลือกช่วงวันที่รายงาน
+            </div>
+            <div class="date-picker-container">
+                <div class="date-input-row">
+                    <div class="date-input-group">
+                        <label for="start-date"><i class="fas fa-calendar-day"></i> วันที่เริ่มต้น (พ.ศ.)</label>
+                        <div class="date-input-wrapper">
+                            <input type="text" id="start-date" class="date-input" placeholder="วว/ดด/ปปปป" readonly>
+                            <i class="fas fa-calendar-alt date-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="date-input-group">
+                        <label for="end-date"><i class="fas fa-calendar-check"></i> วันที่สิ้นสุด (พ.ศ.)</label>
+                        <div class="date-input-wrapper">
+                            <input type="text" id="end-date" class="date-input" placeholder="วว/ดด/ปปปป" readonly>
+                            <i class="fas fa-calendar-alt date-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="submit-btn-container">
+                    <button id="submit-btn" class="submit-btn">
+                        <i class="fas fa-search"></i>
+                        Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>กำลังโหลดข้อมูล...</p>
+        </div>
+
+        <div id="error-message" class="error-message">
+            <div id="error-content"></div>
+            <div id="error-details" class="error-details"></div>
+        </div>
+
+        <div id="results-container" class="results-container">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-table"></i>
+                    จำนวนผู้เรียนแต่ละรายวิชา
+                </div>
+                <div class="current-date-range" id="current-date-range"></div>
+                <div class="table-wrapper">
+                    <table id="member-table">
+                        <thead>
+                            <tr>
+                                <th>รายวิชา</th>
+                                <th>กำลังเรียน (คน)</th>
+                                <th>เรียนจบ (คน)</th>
+                                <th>รวมทั้งหมด (คน)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                        </tbody>
+                    </table>
+                </div>
+                <div style="text-align: right;">
+                    <button id="export-btn" class="export-btn">
+                        <i class="fas fa-file-excel"></i>
+                        Download Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-chart-bar"></i>
+                    กราฟแสดงจำนวนผู้เรียนแต่ละรายวิชา
+                </div>
+                <div class="chart-container">
+                    <canvas id="members-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes"></script>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
