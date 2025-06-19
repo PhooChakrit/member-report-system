@@ -1,3 +1,5 @@
+import { setupThaiDatePicker, formatBuddhistDate, setDefaultThaiDate } from '../component/datepicker.js';
+
 class CourseReportSystem {
     constructor() {
         this.chartInstance = null;
@@ -11,51 +13,40 @@ class CourseReportSystem {
     }
 
     init() {
-        this.setupDatePickers();
+        setupThaiDatePicker('#start-date', (startDate) => {
+            this.startDate = startDate;
+            const buddhistDateStr = formatBuddhistDate(startDate);
+            document.getElementById("start-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
+        });
+
+        this.startDate = setDefaultThaiDate('#start-date');
+        document.getElementById("start-date").textContent =
+            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.startDate)}`;
+
+        setupThaiDatePicker('#end-date', (endDate) => {
+            this.endDate = endDate;
+            const buddhistDateStr = formatBuddhistDate(endDate);
+            document.getElementById("end-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
+        });
+
+        this.endDate = setDefaultThaiDate('#end-date');
+        document.getElementById("end-date").textContent =
+            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.endDate)}`;
+        this.updateDateDisplay();
         this.setupEventListeners();
+        this.generateReport();
     }
 
-    setupDatePickers() {
-        flatpickr("#start-date", {
-            locale: "th",
-            dateFormat: "d/m/Y",
-            defaultDate: new Date(),
-            onChange: (selectedDates) => {
-                this.startDate = selectedDates[0];
-                this.updateDateDisplay();
-            }
-        });
-
-        flatpickr("#end-date", {
-            locale: "th",
-            dateFormat: "d/m/Y",
-            defaultDate: new Date(),
-            onChange: (selectedDates) => {
-                this.endDate = selectedDates[0];
-                this.updateDateDisplay();
-            }
-        });
-
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        document.querySelector("#start-date")._flatpickr.setDate(yesterday);
-    }
 
     updateDateDisplay() {
         if (this.startDate && this.endDate) {
-            const startStr = this.formatBuddhistDate(this.startDate);
-            const endStr = this.formatBuddhistDate(this.endDate);
+            const startStr = formatBuddhistDate(this.startDate);
+            const endStr = formatBuddhistDate(this.endDate);
             document.getElementById("current-date-range").textContent =
                 `ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`;
         }
     }
 
-    formatBuddhistDate(date) {
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear() + 543;
-        return `${day}/${month}/${year}`;
-    }
 
     formatChristianDate(date) {
         return date.toISOString().split('T')[0];
@@ -71,20 +62,52 @@ class CourseReportSystem {
         });
     }
 
-    async fetchCourseData(startDate, endDate) {
-        if (this.useMock) {
-            return {
-                title: "รายงานจำลอง (Mock)",
-                categories: ["หลักสูตร Mock A", "หลักสูตร Mock B", "หลักสูตร Mock C"],
-                activeLearners: [50, 80, 30],
-                completedLearners: [20, 40, 10]
-            };
-        }
+    // async fetchCourseData(startDate, endDate) {
+    //     if (this.useMock) {
+    //         return {
+    //             title: "รายงานจำลอง (Mock)",
+    //             categories: ["หลักสูตร Mock A", "หลักสูตร Mock B", "หลักสูตร Mock C"],
+    //             activeLearners: [50, 80, 30],
+    //             completedLearners: [20, 40, 10]
+    //         };
+    //     }
 
+    //     try {
+    //         // const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/courses?start_date=${this.formatChristianDate(startDate)}&end_date=${this.formatChristianDate(endDate)}`;
+    //         // const response = await axios.get(apiUrl);
+    //         // const data = response.data;
+    //         const data = {
+    //             title: "รายงานจำลอง (Mock)",
+    //             categories: ["หลักสูตร Mock A", "หลักสูตร Mock B", "หลักสูตร Mock C"],
+    //             activeLearners: [50, 80, 30],
+    //             completedLearners: [20, 40, 10]
+    //         }
+    //         return {
+    //             title: data.title || 'รายงานจำนวนผู้เรียนในแต่ละหลักสูตร',
+    //             categories: data.x,
+    //             activeLearners: data.y1,
+    //             completedLearners: data.y2
+    //         };
+    //     } catch (error) {
+    //         console.error('Error fetching data:', error);
+    //         throw error;
+    //     }
+    // }
+    async fetchCourseData(startDate, endDate) {
         try {
-            const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/courses?start_date=${this.formatChristianDate(startDate)}&end_date=${this.formatChristianDate(endDate)}`;
+
+            const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/2?startDate=${this.formatChristianDate(startDate)}&endDate=${this.formatChristianDate(endDate)}`;
             const response = await axios.get(apiUrl);
+            console.log(`Fetching data from: ${apiUrl}`);
+
+            if (response.status !== 200) {
+                throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+            }
+
             const data = response.data;
+            if (!data || !Array.isArray(data.x) || !Array.isArray(data.y1) || !Array.isArray(data.y2)) {
+                throw new Error('รูปแบบข้อมูลจาก API ไม่ถูกต้อง');
+            }
 
             return {
                 title: data.title || 'รายงานจำนวนผู้เรียนในแต่ละหลักสูตร',
@@ -92,39 +115,12 @@ class CourseReportSystem {
                 activeLearners: data.y1,
                 completedLearners: data.y2
             };
+
         } catch (error) {
             console.error('Error fetching data:', error);
             throw error;
         }
     }
-
-    // async fetchCourseData(startDate, endDate) {
-    //     try {
-    //         
-    //         const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/courses?start_date=${this.formatChristianDate(startDate)}&end_date=${this.formatChristianDate(endDate)}`;
-    //         const response = await axios.get(apiUrl);
-
-    //         if (response.status !== 200) {
-    //             throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
-    //         }
-
-    //         const data = response.data;
-    //         if (!data || !Array.isArray(data.x) || !Array.isArray(data.y1) || !Array.isArray(data.y2)) {
-    //             throw new Error('รูปแบบข้อมูลจาก API ไม่ถูกต้อง');
-    //         }
-
-    //         return {
-    //             title: data.title || 'รายงานจำนวนผู้เรียนในแต่ละหลักสูตร',
-    //             categories: data.x,
-    //             activeLearners: data.y1,
-    //             completedLearners: data.y2
-    //         };
-
-    //     } catch (error) {
-    //         console.error('Error fetching data:', error);
-    //         throw error;
-    //     }
-    // }
 
     async generateReport() {
         if (!this.startDate || !this.endDate) {
@@ -143,13 +139,17 @@ class CourseReportSystem {
 
         try {
             const data = await this.fetchCourseData(this.startDate, this.endDate);
+            console.log('Fetched data:', data);
+
             this.currentData = data;
+            // console.log('Fetched data:', data);
+
 
             this.renderTable(data);
             this.renderChart(data);
 
-            const startStr = this.formatBuddhistDate(this.startDate);
-            const endStr = this.formatBuddhistDate(this.endDate);
+            const startStr = formatBuddhistDate(this.startDate);
+            const endStr = formatBuddhistDate(this.endDate);
             document.getElementById("current-date-range").textContent =
                 `ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`;
             document.getElementById("report-title").innerHTML =
@@ -228,6 +228,26 @@ class CourseReportSystem {
     }
 
     renderChart(data) {
+        const ctx = document.getElementById('members-chart').getContext('2d');
+
+        if (this.chartInstance) {
+            this.chartInstance.destroy();
+        }
+
+        if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
+            return;
+        }
+
+        const count = data.categories.length;
+        const baseColors = this.generateColorPalette(count); // ใช้ฟังก์ชันที่มีอยู่แล้ว
+
+        // สร้างชุดสี 2 สีต่อหลักสูตร
+        const activeColors = baseColors.map((color) => color);
+        const completedColors = baseColors.map((color) => {
+            // ปรับให้สีอ่อนลงหน่อยสำหรับแท่ง "เรียนจบ"
+            return color.replace(/(\d+)%\)/, (match, lightness) => `${Math.max(parseInt(lightness) - 15, 30)}%)`);
+        });
+
         this.chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -270,7 +290,9 @@ class CourseReportSystem {
             },
             plugins: [ChartDataLabels]
         });
+
     }
+
 
 
     exportToExcel() {
@@ -282,8 +304,8 @@ class CourseReportSystem {
 
         const totalActive = this.currentData.activeLearners.reduce((a, b) => a + b, 0);
         const totalCompleted = this.currentData.completedLearners.reduce((a, b) => a + b, 0);
-        const startStr = this.formatBuddhistDate(this.startDate);
-        const endStr = this.formatBuddhistDate(this.endDate);
+        const startStr = formatBuddhistDate(this.startDate);
+        const endStr = formatBuddhistDate(this.endDate);
 
         this.currentData.categories.forEach((category, index) => {
             const active = this.currentData.activeLearners[index] || 0;

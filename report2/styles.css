@@ -55,13 +55,11 @@ body {
     border-bottom: 1px solid #e2e8f0;
 }
 
-/* Date Range Picker Styles */
-.date-range-picker-container {
+.date-picker-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    margin-top: 15px;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
 }
 
 .date-input-group {
@@ -81,6 +79,7 @@ body {
     gap: 8px;
 }
 
+
 .date-input-wrapper {
     position: relative;
     width: 100%;
@@ -95,6 +94,13 @@ body {
     pointer-events: none;
 }
 
+.date-range-picker-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 15px;
+}
 .date-input {
     width: 100%;
     padding: 12px 15px;
@@ -114,6 +120,8 @@ body {
     background: white;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
+
+
 
 .submit-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
