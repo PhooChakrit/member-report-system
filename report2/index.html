@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -19,31 +21,34 @@
                 <i class="fas fa-calendar-alt"></i>
                 เลือกช่วงวันที่รายงาน
             </div>
-            <div class="date-range-picker-container">
-                <div class="date-input-group">
-                    <label for="start-date">วันที่เริ่มต้น (พ.ศ.)</label>
-                    <div class="date-input-wrapper">
-                        <input type="text" id="start-date" class="date-input" placeholder="วว/ดด/ปปปป" readonly>
-                        <i class="fas fa-calendar-alt date-icon"></i>
+            <div class="date-picker-container">
+                <div class="date-input-row">
+                    <div class="date-input-group">
+                        <label for="start-date"><i class="fas fa-calendar-day"></i> วันที่เริ่มต้น (พ.ศ.)</label>
+                        <div class="date-input-wrapper">
+                            <input type="text" id="start-date" class="date-input" placeholder="วว/ดด/ปปปป" readonly>
+                            <i class="fas fa-calendar-alt date-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="date-input-group">
+                        <label for="end-date"><i class="fas fa-calendar-check"></i> วันที่สิ้นสุด (พ.ศ.)</label>
+                        <div class="date-input-wrapper">
+                            <input type="text" id="end-date" class="date-input" placeholder="วว/ดด/ปปปป" readonly>
+                            <i class="fas fa-calendar-alt date-icon"></i>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="date-input-group">
-                    <label for="end-date">วันที่สิ้นสุด (พ.ศ.)</label>
-                    <div class="date-input-wrapper">
-                        <input type="text" id="end-date" class="date-input" placeholder="วว/ดด/ปปปป" readonly>
-                        <i class="fas fa-calendar-alt date-icon"></i>
-                    </div>
+                <div class="submit-btn-container">
+                    <button id="submit-btn" class="submit-btn">
+                        <i class="fas fa-search"></i>
+                        Submit
+                    </button>
                 </div>
-                
-                <button id="submit-btn" class="submit-btn">
-                    <i class="fas fa-search"></i>
-                    Submit
-                </button>
             </div>
         </div>
 
-        <!-- ส่วนอื่นๆ เหมือนเดิม -->
+
         <div id="loading" class="loading">
             <div class="spinner"></div>
             <p>กำลังโหลดข้อมูล...</p>
@@ -105,4 +110,5 @@
 
     <script type="module" src="script.js"></script>
 </body>
+
 </html>

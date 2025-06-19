@@ -70,6 +70,7 @@ body {
     max-width: 300px;
 }
 
+
 .date-input-group label {
     font-weight: 500;
     color: #4a5568;
@@ -78,6 +79,7 @@ body {
     align-items: center;
     gap: 8px;
 }
+
 
 
 .date-input-wrapper {
@@ -159,7 +161,7 @@ body {
     padding: 10px;
     background: rgba(102, 126, 234, 0.1);
     border-radius: 8px;
-    border-left: 4px solid #667eea;
+    /* border-left: 4px solid #667eea; */
 }
 
 /* Table Styles */
