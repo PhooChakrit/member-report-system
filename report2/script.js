@@ -76,12 +76,14 @@ class CourseReportSystem {
     //         // const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/courses?start_date=${this.formatChristianDate(startDate)}&end_date=${this.formatChristianDate(endDate)}`;
     //         // const response = await axios.get(apiUrl);
     //         // const data = response.data;
+    //         // สร้าง mock dataset 100 หลักสูตร
+    //         const length =130;
     //         const data = {
-    //             title: "รายงานจำลอง (Mock)",
-    //             categories: ["หลักสูตร Mock A", "หลักสูตร Mock B", "หลักสูตร Mock C"],
-    //             activeLearners: [50, 80, 30],
-    //             completedLearners: [20, 40, 10]
-    //         }
+    //             title: "รายงานจำลอง (Mock 100 หลักสูตร)",
+    //             x: Array.from({ length: length }, (_, i) => `หลักสูตร Mock ${i + 1}`),
+    //             y1: Array.from({ length: length }, () => Math.floor(Math.random() * 100) + 1),
+    //             y2: Array.from({ length: length }, () => Math.floor(Math.random() * 50) + 1)
+    //         };
     //         return {
     //             title: data.title || 'รายงานจำนวนผู้เรียนในแต่ละหลักสูตร',
     //             categories: data.x,
@@ -93,6 +95,7 @@ class CourseReportSystem {
     //         throw error;
     //     }
     // }
+
     async fetchCourseData(startDate, endDate) {
         try {
 
@@ -226,7 +229,6 @@ class CourseReportSystem {
 
         return palette;
     }
-
     renderChart(data) {
         const ctx = document.getElementById('members-chart').getContext('2d');
         if (this.chartInstance) {
@@ -237,6 +239,37 @@ class CourseReportSystem {
         }
 
         const count = data.categories.length;
+
+        // คำนวณการตั้งค่า scale ตามขนาดข้อมูล
+        const getScaleSettings = (dataCount) => {
+            if (dataCount <= 10) {
+                return {
+                    maxRotation: 0,
+                    minRotation: 0,
+                    fontSize: 12
+                };
+            } else if (dataCount <= 20) {
+                return {
+                    maxRotation: 30,
+                    minRotation: 30,
+                    fontSize: 10
+                };
+            } else if (dataCount <= 40) {
+                return {
+                    maxRotation: 60,
+                    minRotation: 60,
+                    fontSize: 9
+                };
+            } else {
+                return {
+                    maxRotation: 80,
+                    minRotation: 80,
+                    fontSize: 8
+                };
+            }
+        };
+
+        const scaleSettings = getScaleSettings(count);
 
         const generateQualitativeColors = (numColors) => {
             const baseColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b',
@@ -329,9 +362,7 @@ class CourseReportSystem {
             options: {
                 plugins: {
                     legend: {
-                        labels: {
-                            font: { family: 'Kanit' }
-                        }
+                        display: false
                     },
                     tooltip: {
                         callbacks: {
@@ -344,14 +375,21 @@ class CourseReportSystem {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: { stacked: false },
+                    x: {
+                        stacked: false,
+                        ticks: {
+                            maxRotation: scaleSettings.maxRotation,
+                            minRotation: scaleSettings.minRotation,
+                            font: {
+                                size: scaleSettings.fontSize
+                            }
+                        }
+                    },
                     y: { beginAtZero: true }
                 }
-            },
-            plugins: [ChartDataLabels]
+            }
         });
     }
-
     // เพิ่มฟังก์ชันช่วยสำหรับการปรับสี hex
     darkenHexColor(hex, factor) {
         // แปลง hex เป็น RGB
