@@ -1,3 +1,4 @@
+/* CSS จากไฟล์ styles.css เดิมทั้งหมด */
 * {
     margin: 0;
     padding: 0;
@@ -70,7 +71,6 @@ body {
     max-width: 300px;
 }
 
-
 .date-input-group label {
     font-weight: 500;
     color: #4a5568;
@@ -79,8 +79,6 @@ body {
     align-items: center;
     gap: 8px;
 }
-
-
 
 .date-input-wrapper {
     position: relative;
@@ -96,13 +94,6 @@ body {
     pointer-events: none;
 }
 
-.date-range-picker-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    margin-top: 15px;
-}
 .date-input {
     width: 100%;
     padding: 12px 15px;
@@ -122,8 +113,6 @@ body {
     background: white;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
-
-
 
 .submit-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -152,7 +141,8 @@ body {
     transform: translateY(0);
 }
 
-.current-date-range {
+.current-date-range,
+.current-date {
     text-align: center;
     color: #667eea;
     font-weight: 600;
@@ -161,7 +151,6 @@ body {
     padding: 10px;
     background: rgba(102, 126, 234, 0.1);
     border-radius: 8px;
-    /* border-left: 4px solid #667eea; */
 }
 
 /* Table Styles */
@@ -248,6 +237,25 @@ tr:last-child td {
     display: block;
 }
 
+/* เพิ่มในไฟล์ CSS */
+.loading-spinner-small {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    border-radius: 50%;
+    border-top-color: #667eea;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .spinner {
     width: 40px;
     height: 40px;
@@ -259,8 +267,13 @@ tr:last-child td {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Error Message Styles */
@@ -309,6 +322,7 @@ tr:last-child td {
         transform: translateX(100%);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -370,7 +384,8 @@ tr:last-child td {
         height: 350px;
     }
 
-    th, td {
+    th,
+    td {
         padding: 12px 10px;
         font-size: 0.9rem;
     }
@@ -392,11 +407,13 @@ tr:last-child td {
         font-size: 1.1rem;
     }
 
-    .current-date-range {
+    .current-date-range,
+    .current-date {
         font-size: 1rem;
     }
 
-    .submit-btn, .export-btn {
+    .submit-btn,
+    .export-btn {
         padding: 10px 15px;
         font-size: 0.9rem;
     }
@@ -404,4 +421,28 @@ tr:last-child td {
     .chart-container {
         height: 300px;
     }
+}
+
+/* เพิ่มสไตล์เฉพาะสำหรับ report1.html */
+.report1-specific .section-title i {
+    color: #667eea;
+    font-size: 1.1rem;
+}
+
+/* เพิ่มสไตล์เฉพาะสำหรับ report2.html */
+.report2-specific .date-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+/* เพิ่มสไตล์เฉพาะสำหรับ report3.html */
+.report3-specific .date-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 15px;
 }
