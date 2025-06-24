@@ -813,14 +813,14 @@ class CourseReportSystem {
             labels: data.categories,
             datasets: [
                 {
-                    label: 'ผู้ลงทะเบียน',
+                    label: 'ผู้ลงทะเบียน (คน)',
                     data: data.activeLearners,
                     backgroundColor: activeColor,
                     borderColor: activeColor,
                     borderWidth: 1
                 },
                 {
-                    label: 'ผู้เรียนจบ',
+                    label: 'ผู้เรียนจบ (คน)',
                     data: data.completedLearners,
                     backgroundColor: completedColor,
                     borderColor: completedColor,
@@ -901,7 +901,7 @@ class CourseReportSystem {
         if (!this.currentData || !this.startDate || !this.endDate) return;
 
         const excelData = [
-            [this.type === 2 ? 'หลักสูตร' : 'รายวิชา', 'ผู้ลงทะเบียน', 'ผู้เรียนจบ']
+            [this.type === 2 ? 'หลักสูตร' : 'รายวิชา', 'ผู้ลงทะเบียน (คน)', 'ผู้เรียนจบ (คน)']
         ];
 
         const startStr = formatBuddhistDate(this.startDate);
