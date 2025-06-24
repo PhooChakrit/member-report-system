@@ -607,161 +607,272 @@ class CourseReportSystem {
         return palette;
     }
 
+    // renderChart(data) {
+    //     const ctx = document.getElementById('members-chart').getContext('2d');
+    //     if (this.chartInstance) {
+    //         this.chartInstance.destroy();
+    //     }
+    //     if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
+    //         return;
+    //     }
+
+    //     const count = data.categories.length;
+
+    //     const getScaleSettings = (dataCount) => {
+    //         if (dataCount <= 10) {
+    //             return {
+    //                 maxRotation: 0,
+    //                 minRotation: 0,
+    //                 fontSize: 12
+    //             };
+    //         } else if (dataCount <= 20) {
+    //             return {
+    //                 maxRotation: 30,
+    //                 minRotation: 30,
+    //                 fontSize: 10
+    //             };
+    //         } else if (dataCount <= 40) {
+    //             return {
+    //                 maxRotation: 60,
+    //                 minRotation: 60,
+    //                 fontSize: 9
+    //             };
+    //         } else {
+    //             return {
+    //                 maxRotation: 80,
+    //                 minRotation: 80,
+    //                 fontSize: 8
+    //             };
+    //         }
+    //     };
+
+    //     const scaleSettings = getScaleSettings(count);
+
+    //     const generateQualitativeColors = (numColors) => {
+    //         const baseColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b',
+    //             '#eb4d4b', '#6c5ce7', '#a29bfe', '#fd79a8', '#e84393',
+    //             '#00b894', '#00cec9', '#2d3436', '#636e72', '#74b9ff',
+    //             '#0984e3', '#fdcb6e', '#e17055', '#81ecec', '#00b894',
+    //             '#ff7675', '#fd79a8', '#6c5ce7', '#a29bfe', '#74b9ff',
+    //             '#55a3ff', '#26de81', '#feca57', '#ff9ff3', '#54a0ff',
+    //             '#5f27cd', '#00d2d3', '#ff9f43', '#ee5a24', '#0abde3',
+    //             '#006ba6', '#0582ca', '#00a6fb', '#0075f2', '#144fc6',
+    //             '#8e44ad', '#9b59b6', '#e74c3c', '#c0392b', '#f39c12',
+    //             '#d35400', '#27ae60', '#2ecc71', '#16a085', '#1abc9c',
+    //             '#34495e', '#2c3e50', '#95a5a6', '#7f8c8d', '#ecf0f1',
+    //             '#bdc3c7', '#3498db', '#2980b9', '#e67e22', '#d35400',
+    //             '#f1c40f', '#f39c12', '#2ecc71', '#27ae60', '#1abc9c',
+    //             '#e78ac3', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00',
+    //             '#ffff33', '#a65628', '#f781bf', '#999999', '#66c2a5',
+    //             '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f',
+    //             '#e5c494', '#b3b3b3', '#8dd3c7', '#ffffb3', '#bebada',
+    //             '#fb8072', '#80b1d3', '#fdb462', '#b3de69', '#fccde5',
+    //             '#d9d9d9', '#bc80bd', '#ccebc5', '#ffed6f', '#1b9e77',
+    //             '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02',
+    //             '#a6761d', '#666666', '#2ca02c', '#d62728', '#9467bd',
+    //             '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+    //         ];
+
+    //         const colors = [];
+
+    //         if (numColors <= baseColors.length) {
+    //             return baseColors.slice(0, numColors);
+    //         }
+
+    //         for (let i = 0; i < numColors; i++) {
+    //             if (i < baseColors.length) {
+    //                 colors.push(baseColors[i]);
+    //             } else {
+    //                 const hue = (i * 137.508) % 360;
+    //                 const saturation = 70 + (i % 4) * 5;
+    //                 const lightness = 45 + (Math.floor(i / 4) % 4) * 8;
+    //                 colors.push(`hsl(${Math.floor(hue)}, ${saturation}%, ${lightness}%)`);
+    //             }
+    //         }
+
+    //         return colors;
+    //     };
+
+    //     const baseColors = generateQualitativeColors(count);
+
+    //     const activeColors = [];
+    //     const completedColors = [];
+
+    //     for (let i = 0; i < count; i++) {
+    //         const baseColor = baseColors[i];
+    //         activeColors.push(baseColor);
+    //         let completedColor;
+    //         if (baseColor.startsWith('#')) {
+    //             completedColor = this.darkenHexColor(baseColor, 0.3);
+    //         } else {
+    //             completedColor = this.adjustHSLLightness(baseColor, -25);
+    //         }
+    //         completedColors.push(completedColor);
+    //     }
+
+    //     this.chartInstance = new Chart(ctx, {
+    //         type: 'bar',
+    //         data: {
+    //             labels: data.categories,
+    //             datasets: [
+    //                 {
+    //                     label: 'กำลังเรียน',
+    //                     data: data.activeLearners,
+    //                     backgroundColor: activeColors,
+    //                     borderColor: activeColors,
+    //                     borderWidth: 1
+    //                 },
+    //                 {
+    //                     label: 'เรียนจบ',
+    //                     data: data.completedLearners,
+    //                     backgroundColor: completedColors,
+    //                     borderColor: completedColors,
+    //                     borderWidth: 1
+    //                 }
+    //             ]
+    //         },
+    //         options: {
+    //             plugins: {
+    //                 legend: {
+    //                     display: false
+    //                 },
+    //                 tooltip: {
+    //                     callbacks: {
+    //                         label: function (context) {
+    //                             return `${context.dataset.label}: ${context.raw.toLocaleString()} คน`;
+    //                         }
+    //                     }
+    //                 }
+    //             },
+    //             responsive: true,
+    //             maintainAspectRatio: false,
+    //             scales: {
+    //                 x: {
+    //                     stacked: false,
+    //                     ticks: {
+    //                         maxRotation: scaleSettings.maxRotation,
+    //                         minRotation: scaleSettings.minRotation,
+    //                         font: {
+    //                             size: scaleSettings.fontSize
+    //                         }
+    //                     }
+    //                 },
+    //                 y: { beginAtZero: true }
+    //             }
+    //         }
+    //     });
+    // }
     renderChart(data) {
-        const ctx = document.getElementById('members-chart').getContext('2d');
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
+    const ctx = document.getElementById('members-chart').getContext('2d');
+    if (this.chartInstance) {
+        this.chartInstance.destroy();
+    }
+    if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
+        return;
+    }
+
+    const count = data.categories.length;
+
+    const getScaleSettings = (dataCount) => {
+        if (dataCount <= 10) {
+            return {
+                maxRotation: 0,
+                minRotation: 0,
+                fontSize: 12
+            };
+        } else if (dataCount <= 20) {
+            return {
+                maxRotation: 30,
+                minRotation: 30,
+                fontSize: 10
+            };
+        } else if (dataCount <= 40) {
+            return {
+                maxRotation: 60,
+                minRotation: 60,
+                fontSize: 9
+            };
+        } else {
+            return {
+                maxRotation: 80,
+                minRotation: 80,
+                fontSize: 8
+            };
         }
-        if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
-            return;
-        }
+    };
 
-        const count = data.categories.length;
+    const scaleSettings = getScaleSettings(count);
 
-        const getScaleSettings = (dataCount) => {
-            if (dataCount <= 10) {
-                return {
-                    maxRotation: 0,
-                    minRotation: 0,
-                    fontSize: 12
-                };
-            } else if (dataCount <= 20) {
-                return {
-                    maxRotation: 30,
-                    minRotation: 30,
-                    fontSize: 10
-                };
-            } else if (dataCount <= 40) {
-                return {
-                    maxRotation: 60,
-                    minRotation: 60,
-                    fontSize: 9
-                };
-            } else {
-                return {
-                    maxRotation: 80,
-                    minRotation: 80,
-                    fontSize: 8
-                };
-            }
-        };
+    // Define our two contrasting colors
+    const activeColor = '#FF7F50';  // Coral (orange shade)
+    const completedColor = '#4682B4'; // Steel Blue
 
-        const scaleSettings = getScaleSettings(count);
-
-        const generateQualitativeColors = (numColors) => {
-            const baseColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b',
-                '#eb4d4b', '#6c5ce7', '#a29bfe', '#fd79a8', '#e84393',
-                '#00b894', '#00cec9', '#2d3436', '#636e72', '#74b9ff',
-                '#0984e3', '#fdcb6e', '#e17055', '#81ecec', '#00b894',
-                '#ff7675', '#fd79a8', '#6c5ce7', '#a29bfe', '#74b9ff',
-                '#55a3ff', '#26de81', '#feca57', '#ff9ff3', '#54a0ff',
-                '#5f27cd', '#00d2d3', '#ff9f43', '#ee5a24', '#0abde3',
-                '#006ba6', '#0582ca', '#00a6fb', '#0075f2', '#144fc6',
-                '#8e44ad', '#9b59b6', '#e74c3c', '#c0392b', '#f39c12',
-                '#d35400', '#27ae60', '#2ecc71', '#16a085', '#1abc9c',
-                '#34495e', '#2c3e50', '#95a5a6', '#7f8c8d', '#ecf0f1',
-                '#bdc3c7', '#3498db', '#2980b9', '#e67e22', '#d35400',
-                '#f1c40f', '#f39c12', '#2ecc71', '#27ae60', '#1abc9c',
-                '#e78ac3', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00',
-                '#ffff33', '#a65628', '#f781bf', '#999999', '#66c2a5',
-                '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f',
-                '#e5c494', '#b3b3b3', '#8dd3c7', '#ffffb3', '#bebada',
-                '#fb8072', '#80b1d3', '#fdb462', '#b3de69', '#fccde5',
-                '#d9d9d9', '#bc80bd', '#ccebc5', '#ffed6f', '#1b9e77',
-                '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02',
-                '#a6761d', '#666666', '#2ca02c', '#d62728', '#9467bd',
-                '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-            ];
-
-            const colors = [];
-
-            if (numColors <= baseColors.length) {
-                return baseColors.slice(0, numColors);
-            }
-
-            for (let i = 0; i < numColors; i++) {
-                if (i < baseColors.length) {
-                    colors.push(baseColors[i]);
-                } else {
-                    const hue = (i * 137.508) % 360;
-                    const saturation = 70 + (i % 4) * 5;
-                    const lightness = 45 + (Math.floor(i / 4) % 4) * 8;
-                    colors.push(`hsl(${Math.floor(hue)}, ${saturation}%, ${lightness}%)`);
+    this.chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.categories,
+            datasets: [
+                {
+                    label: 'จำนวนผู้สมัครเรียน (คน)',
+                    data: data.activeLearners,
+                    backgroundColor: activeColor,
+                    borderColor: activeColor,
+                    borderWidth: 1
+                },
+                {
+                    label: 'จำนวนผู้เรียนจบ (คน)',
+                    data: data.completedLearners,
+                    backgroundColor: completedColor,
+                    borderColor: completedColor,
+                    borderWidth: 1
                 }
-            }
-
-            return colors;
-        };
-
-        const baseColors = generateQualitativeColors(count);
-
-        const activeColors = [];
-        const completedColors = [];
-
-        for (let i = 0; i < count; i++) {
-            const baseColor = baseColors[i];
-            activeColors.push(baseColor);
-            let completedColor;
-            if (baseColor.startsWith('#')) {
-                completedColor = this.darkenHexColor(baseColor, 0.3);
-            } else {
-                completedColor = this.adjustHSLLightness(baseColor, -25);
-            }
-            completedColors.push(completedColor);
-        }
-
-        this.chartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.categories,
-                datasets: [
-                    {
-                        label: 'กำลังเรียน',
-                        data: data.activeLearners,
-                        backgroundColor: activeColors,
-                        borderColor: activeColors,
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'เรียนจบ',
-                        data: data.completedLearners,
-                        backgroundColor: completedColors,
-                        borderColor: completedColors,
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                return `${context.dataset.label}: ${context.raw.toLocaleString()} คน`;
-                            }
+            ]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: {
+                            size: 12
                         }
                     }
                 },
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        stacked: false,
-                        ticks: {
-                            maxRotation: scaleSettings.maxRotation,
-                            minRotation: scaleSettings.minRotation,
-                            font: {
-                                size: scaleSettings.fontSize
-                            }
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return `${context.dataset.label}: ${context.raw.toLocaleString()}`;
                         }
-                    },
-                    y: { beginAtZero: true }
+                    }
+                }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: false,
+                    ticks: {
+                        maxRotation: scaleSettings.maxRotation,
+                        minRotation: scaleSettings.minRotation,
+                        font: {
+                            size: scaleSettings.fontSize
+                        }
+                    }
+                },
+                y: { 
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'จำนวน (คน)'
+                    }
                 }
             }
-        });
-    }
+        }
+    });
+}
 
     darkenHexColor(hex, factor) {
         const r = parseInt(hex.slice(1, 3), 16);
