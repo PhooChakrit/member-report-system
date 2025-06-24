@@ -813,14 +813,14 @@ class CourseReportSystem {
             labels: data.categories,
             datasets: [
                 {
-                    label: 'จำนวนผู้สมัครเรียน (คน)',
+                    label: 'ผู้ลงทะเบียน',
                     data: data.activeLearners,
                     backgroundColor: activeColor,
                     borderColor: activeColor,
                     borderWidth: 1
                 },
                 {
-                    label: 'จำนวนผู้เรียนจบ (คน)',
+                    label: 'ผู้เรียนจบ',
                     data: data.completedLearners,
                     backgroundColor: completedColor,
                     borderColor: completedColor,
@@ -901,33 +901,24 @@ class CourseReportSystem {
         if (!this.currentData || !this.startDate || !this.endDate) return;
 
         const excelData = [
-            [this.type === 2 ? 'หลักสูตร' : 'รายวิชา', 'จำนวนผู้สมัครเรียน (คน)', 'จำนวนผู้เรียนจบ (คน)']
+            [this.type === 2 ? 'หลักสูตร' : 'รายวิชา', 'ผู้ลงทะเบียน', 'ผู้เรียนจบ']
         ];
 
-        const totalActive = this.currentData.activeLearners.reduce((a, b) => a + b, 0);
-        const totalCompleted = this.currentData.completedLearners.reduce((a, b) => a + b, 0);
         const startStr = formatBuddhistDate(this.startDate);
         const endStr = formatBuddhistDate(this.endDate);
 
         this.currentData.categories.forEach((category, index) => {
             const active = this.currentData.activeLearners[index] || 0;
             const completed = this.currentData.completedLearners[index] || 0;
-            const total = active + completed;
 
             excelData.push([
                 category || (this.type === 2 ? 'ไม่มีชื่อหลักสูตร' : 'ไม่มีชื่อรายวิชา'),
                 active,
                 completed,
-                total
+                // total
             ]);
         });
 
-        excelData.push([
-            'รวมทั้งหมด',
-            totalActive,
-            totalCompleted,
-            totalActive + totalCompleted
-        ]);
 
         excelData.push([], [`ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`]);
 
