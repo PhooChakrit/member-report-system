@@ -574,42 +574,23 @@ class CourseReportSystem {
 
         if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
             const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="4" style="text-align: center; color: #ef4444;">ไม่มีข้อมูลหรือข้อมูลไม่ถูกต้อง</td>`;
+            row.innerHTML = `<td colspan="3" style="text-align: center; color: #ef4444;">ไม่มีข้อมูลหรือข้อมูลไม่ถูกต้อง</td>`;
             tableBody.appendChild(row);
             return;
         }
 
-        let totalActive = 0;
-        let totalCompleted = 0;
-
         data.categories.forEach((category, index) => {
             const active = data.activeLearners[index] || 0;
             const completed = data.completedLearners[index] || 0;
-            const total = active + completed;
-
-            totalActive += active;
-            totalCompleted += completed;
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${category || (this.type === 2 ? 'ไม่มีชื่อหลักสูตร' : 'ไม่มีชื่อรายวิชา')}</td>
-                <td>${active.toLocaleString()}</td>
-                <td>${completed.toLocaleString()}</td>
-                <td>${total.toLocaleString()}</td>
-            `;
+            <td>${category || (this.type === 2 ? 'ไม่มีชื่อหลักสูตร' : 'ไม่มีชื่อรายวิชา')}</td>
+            <td>${active.toLocaleString()}</td>
+            <td>${completed.toLocaleString()}</td>
+        `;
             tableBody.appendChild(row);
         });
-
-        const totalRow = document.createElement('tr');
-        totalRow.style.fontWeight = 'bold';
-        totalRow.style.backgroundColor = '#f7fafc';
-        totalRow.innerHTML = `
-            <td>รวมทั้งหมด</td>
-            <td>${totalActive.toLocaleString()}</td>
-            <td>${totalCompleted.toLocaleString()}</td>
-            <td>${(totalActive + totalCompleted).toLocaleString()}</td>
-        `;
-        tableBody.appendChild(totalRow);
     }
 
     generateColorPalette(count) {
@@ -809,7 +790,7 @@ class CourseReportSystem {
         if (!this.currentData || !this.startDate || !this.endDate) return;
 
         const excelData = [
-            [this.type === 2 ? 'หลักสูตร' : 'รายวิชา', 'กำลังเรียน (คน)', 'เรียนจบ (คน)', 'รวมทั้งหมด (คน)']
+            [this.type === 2 ? 'หลักสูตร' : 'รายวิชา', 'จำนวนผู้สมัครเรียน (คน)', 'จำนวนผู้เรียนจบ (คน)']
         ];
 
         const totalActive = this.currentData.activeLearners.reduce((a, b) => a + b, 0);
