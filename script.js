@@ -410,7 +410,7 @@ class MemberReportSystem {
 
         const dateInput = document.getElementById('report-date');
         const christianDate = dateInput.dataset.isoDate.replace(/-/g, '');
-        XLSX.writeFile(wb, `member_report_${christianDate}.xlsx`);
+        XLSX.writeFile(wb, `member-report.xlsx`);
     }
 }
 
@@ -578,11 +578,13 @@ class CourseReportSystem {
             tableBody.appendChild(row);
             return;
         }
-
+        let totalActive = 0;
+        let totalCompleted = 0;
         data.categories.forEach((category, index) => {
             const active = data.activeLearners[index] || 0;
             const completed = data.completedLearners[index] || 0;
-
+            totalActive += active;
+            totalCompleted += completed;
             const row = document.createElement('tr');
             row.innerHTML = `
             <td>${category || (this.type === 2 ? 'ไม่มีชื่อหลักสูตร' : 'ไม่มีชื่อรายวิชา')}</td>
@@ -591,6 +593,15 @@ class CourseReportSystem {
         `;
             tableBody.appendChild(row);
         });
+        const totalRow = document.createElement('tr');
+        totalRow.style.fontWeight = 'bold';
+        totalRow.style.backgroundColor = '#f7fafc';
+        totalRow.innerHTML = `
+            <td>รวม</td>
+            <td>${totalActive.toLocaleString()}</td>
+            <td>${totalCompleted.toLocaleString()}</td>
+        `;
+        tableBody.appendChild(totalRow);
     }
 
     generateColorPalette(count) {
@@ -763,116 +774,116 @@ class CourseReportSystem {
     //     });
     // }
     renderChart(data) {
-    const ctx = document.getElementById('members-chart').getContext('2d');
-    if (this.chartInstance) {
-        this.chartInstance.destroy();
-    }
-    if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
-        return;
-    }
-
-    const count = data.categories.length;
-
-    const getScaleSettings = (dataCount) => {
-        if (dataCount <= 10) {
-            return {
-                maxRotation: 0,
-                minRotation: 0,
-                fontSize: 12
-            };
-        } else if (dataCount <= 20) {
-            return {
-                maxRotation: 30,
-                minRotation: 30,
-                fontSize: 10
-            };
-        } else if (dataCount <= 40) {
-            return {
-                maxRotation: 60,
-                minRotation: 60,
-                fontSize: 9
-            };
-        } else {
-            return {
-                maxRotation: 80,
-                minRotation: 80,
-                fontSize: 8
-            };
+        const ctx = document.getElementById('members-chart').getContext('2d');
+        if (this.chartInstance) {
+            this.chartInstance.destroy();
         }
-    };
+        if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
+            return;
+        }
 
-    const scaleSettings = getScaleSettings(count);
+        const count = data.categories.length;
 
-    // Define our two contrasting colors
-    const activeColor = '#FF7F50';  // Coral (orange shade)
-    const completedColor = '#4682B4'; // Steel Blue
+        const getScaleSettings = (dataCount) => {
+            if (dataCount <= 10) {
+                return {
+                    maxRotation: 0,
+                    minRotation: 0,
+                    fontSize: 12
+                };
+            } else if (dataCount <= 20) {
+                return {
+                    maxRotation: 30,
+                    minRotation: 30,
+                    fontSize: 10
+                };
+            } else if (dataCount <= 40) {
+                return {
+                    maxRotation: 60,
+                    minRotation: 60,
+                    fontSize: 9
+                };
+            } else {
+                return {
+                    maxRotation: 80,
+                    minRotation: 80,
+                    fontSize: 8
+                };
+            }
+        };
 
-    this.chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: data.categories,
-            datasets: [
-                {
-                    label: 'ผู้ลงทะเบียน (คน)',
-                    data: data.activeLearners,
-                    backgroundColor: activeColor,
-                    borderColor: activeColor,
-                    borderWidth: 1
-                },
-                {
-                    label: 'ผู้เรียนจบ (คน)',
-                    data: data.completedLearners,
-                    backgroundColor: completedColor,
-                    borderColor: completedColor,
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            size: 12
-                        }
+        const scaleSettings = getScaleSettings(count);
+
+        // Define our two contrasting colors
+        const activeColor = '#FF7F50';  // Coral (orange shade)
+        const completedColor = '#4682B4'; // Steel Blue
+
+        this.chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.categories,
+                datasets: [
+                    {
+                        label: 'ผู้ลงทะเบียน (คน)',
+                        data: data.activeLearners,
+                        backgroundColor: activeColor,
+                        borderColor: activeColor,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'ผู้เรียนจบ (คน)',
+                        data: data.completedLearners,
+                        backgroundColor: completedColor,
+                        borderColor: completedColor,
+                        borderWidth: 1
                     }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            return `${context.dataset.label}: ${context.raw.toLocaleString()}`;
-                        }
-                    }
-                }
+                ]
             },
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    stacked: false,
-                    ticks: {
-                        maxRotation: scaleSettings.maxRotation,
-                        minRotation: scaleSettings.minRotation,
-                        font: {
-                            size: scaleSettings.fontSize
+            options: {
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.dataset.label}: ${context.raw.toLocaleString()}`;
+                            }
                         }
                     }
                 },
-                y: { 
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'จำนวน (คน)'
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: false,
+                        ticks: {
+                            maxRotation: scaleSettings.maxRotation,
+                            minRotation: scaleSettings.minRotation,
+                            font: {
+                                size: scaleSettings.fontSize
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'จำนวน (คน)'
+                        }
                     }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
     darkenHexColor(hex, factor) {
         const r = parseInt(hex.slice(1, 3), 16);
@@ -903,7 +914,8 @@ class CourseReportSystem {
         const excelData = [
             [this.type === 2 ? 'หลักสูตร' : 'รายวิชา', 'ผู้ลงทะเบียน (คน)', 'ผู้เรียนจบ (คน)']
         ];
-
+        const totalActive = this.currentData.activeLearners.reduce((a, b) => a + b, 0);
+        const totalCompleted = this.currentData.completedLearners.reduce((a, b) => a + b, 0);
         const startStr = formatBuddhistDate(this.startDate);
         const endStr = formatBuddhistDate(this.endDate);
 
@@ -919,6 +931,12 @@ class CourseReportSystem {
             ]);
         });
 
+        excelData.push([
+            'รวม',
+            totalActive,
+            totalCompleted,
+        ]);
+
 
         excelData.push([], [`ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`]);
 
@@ -928,7 +946,7 @@ class CourseReportSystem {
 
         const startDateStr = this.startDate.toISOString().split('T')[0].replace(/-/g, '');
         const endDateStr = this.endDate.toISOString().split('T')[0].replace(/-/g, '');
-        XLSX.writeFile(wb, `${this.type === 2 ? 'course' : 'subject'}_report_${startDateStr}_${endDateStr}.xlsx`);
+        XLSX.writeFile(wb, `${this.type === 2 ? 'course' : 'subject'}-report.xlsx`);
     }
 
     showToast(message) {
