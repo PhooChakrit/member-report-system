@@ -39,6 +39,27 @@
                         </div>
                     </div>
                 </div>
+                <div class="section">
+                    <div class="section-title">
+                        <i class="fas fa-list-ul"></i>
+                        เลือกรายวิชาที่ต้องการ
+                    </div>
+
+                    <!-- แก้ไขส่วนนี้เป็นแบบ 3:2 และจัดกลาง -->
+                    <div class="course-selection-wrapper" id="course-selection">
+                        <!-- แถวแรก 3 กลุ่มวิชา -->
+                        <div class="course-row" id="first-row">
+                            <!-- กลุ่มวิชาที่ 1-3 จะถูกเพิ่มโดย JavaScript -->
+                        </div>
+                        
+                        <!-- แถวที่สอง 2 กลุ่มวิชา -->
+                        <div class="course-row" id="second-row">
+                            <!-- กลุ่มวิชาที่ 4-5 จะถูกเพิ่มโดย JavaScript -->
+                        </div>
+                    </div>
+
+                </div>
+
                 <div class="submit-btn-container">
                     <button id="submit-btn" class="submit-btn">
                         <i class="fas fa-search"></i>
@@ -47,7 +68,6 @@
                 </div>
             </div>
         </div>
-
 
         <div id="loading" class="loading">
             <div class="spinner"></div>
@@ -91,7 +111,6 @@
                 <div class="section-title">
                     <i class="fas fa-chart-bar"></i>
                     กราฟจำนวนผู้ลงทะเบียน/เรียนจบ จำแนกตามรายวิชา
-
                 </div>
                 <div class="chart-container">
                     <canvas id="members-chart"></canvas>
@@ -110,5 +129,4 @@
 
     <script type="module" src="script.js"></script>
 </body>
-
 </html>

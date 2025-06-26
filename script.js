@@ -977,8 +977,491 @@ class CourseReportSystem {
         document.getElementById('error-message').classList.remove('show');
     }
 }
+class Report4 {
+    constructor(type = 4) {
+        this.chartInstance = null;
+        this.currentData = null;
+        this.startDate = null;
+        this.endDate = null;
+        this.type = type;
+        this.init();
+    }
+    init() {
+        setupThaiDatePicker('#start-date', (startDate) => {
+            this.startDate = startDate;
+            const buddhistDateStr = formatBuddhistDate(startDate);
+            document.getElementById("start-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
+        });
 
-// ตรวจสอบหน้าและเรียกคลาสที่เหมาะสม
+        this.startDate = setDefaultThaiDate('#start-date');
+        document.getElementById("start-date").textContent =
+            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.startDate)}`;
+
+        setupThaiDatePicker('#end-date', (endDate) => {
+            this.endDate = endDate;
+            const buddhistDateStr = formatBuddhistDate(endDate);
+            document.getElementById("end-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
+        });
+
+        this.endDate = setDefaultThaiDate('#end-date');
+        document.getElementById("end-date").textContent =
+            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.endDate)}`;
+        this.updateDateDisplay();
+        this.setupEventListeners();
+        this.generateReport();
+        this.loadCourseList();
+
+    }
+async loadCourseList() {
+    const firstRow = document.getElementById('first-row');
+    const secondRow = document.getElementById('second-row');
+    if (!firstRow || !secondRow) return;
+
+    const groupNames = {
+        KD: '1. การพัฒนาองค์ความรู้ (KD)',
+        MS: '2. การพัฒนากรอบความคิด (MS)',
+        SL: '3. ทักษะเชิงยุทธศาสตร์ (SL)',
+        DS: '4. ทักษะดิจิทัล (DS)',
+        LS: '5. ทักษะด้านภาษา (LS)'
+    };
+
+    try {
+        const response = await axios.get('https://learningportal.ocsc.go.th/learningspaceapi/courses');
+        const allCourses = response.data;
+
+        // เรียงลำดับกลุ่มตามที่กำหนด
+        const groupOrder = ['KD', 'MS', 'SL', 'DS', 'LS'];
+        
+        groupOrder.forEach((group, index) => {
+            const coursesInGroup = allCourses.filter(course => 
+                course.code?.startsWith(group)
+            );
+            
+            if (coursesInGroup.length > 0) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'course-category';
+
+                const title = document.createElement('div');
+                title.className = 'category-title';
+                title.textContent = groupNames[group] || group;
+
+                const column = document.createElement('div');
+                column.className = 'course-column';
+
+                coursesInGroup.forEach(course => {
+                    const label = document.createElement('label');
+                    label.className = 'course-checkbox';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = course.code;
+                    checkbox.className = 'course-filter';
+
+                    const courseText = document.createElement('span');
+                    courseText.textContent = `${course.code} - ${course.name}`;
+
+                    label.appendChild(checkbox);
+                    label.appendChild(courseText);
+                    column.appendChild(label);
+                });
+
+                wrapper.appendChild(title);
+                wrapper.appendChild(column);
+
+                // แถวแรก 3 กลุ่มวิชา (KD, MS, SL)
+                if (index < 3) {
+                    firstRow.appendChild(wrapper);
+                } 
+                // แถวที่สอง 2 กลุ่มวิชา (DS, LS)
+                else {
+                    secondRow.appendChild(wrapper);
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('ไม่สามารถโหลดรายวิชาได้:', error);
+        const container = document.getElementById('course-selection');
+        if (container) {
+            container.innerHTML = `<p class="error-message">เกิดข้อผิดพลาดในการโหลดรายวิชา</p>`;
+        }
+    }
+}
+
+    updateDateDisplay() {
+        if (this.startDate && this.endDate) {
+            const startStr = formatBuddhistDate(this.startDate);
+            const endStr = formatBuddhistDate(this.endDate);
+            document.getElementById("current-date-range").textContent =
+                `ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`;
+        }
+    }
+    getSelectedCourses() {
+        const checkboxes = document.querySelectorAll('.course-filter:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+
+    formatChristianDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    setupEventListeners() {
+        document.getElementById('submit-btn').addEventListener('click', () => {
+            this.generateReport();
+        });
+
+        document.getElementById('export-btn').addEventListener('click', () => {
+            this.exportToExcel();
+        });
+    }
+
+    async fetchCourseData(startDate, endDate) {
+        try {
+            const selectedCourses = this.getSelectedCourses();
+            const courseQuery = selectedCourses.length > 0
+                ? `&selectedCourses=${selectedCourses.join(',')}`
+                : '';
+
+            const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/${this.type}?startDate=${this.formatChristianDate(startDate)}&endDate=${this.formatChristianDate(endDate)}${courseQuery}`;
+            if (selectedCourses.length === 0) {
+                throw new Error('กรุณาเลือกอย่างน้อยหนึ่งรายวิชา');
+            }
+            console.log(`Fetching data from: ${apiUrl}`);
+            
+            const response = await axios.get(apiUrl);
+            console.log(`Fetching data from: ${apiUrl}`);
+
+            if (response.status !== 200) {
+                throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+            }
+
+            const data = response.data;
+            if (!data || !Array.isArray(data.x) || !Array.isArray(data.y1) || !Array.isArray(data.y2)) {
+                throw new Error('รูปแบบข้อมูลจาก API ไม่ถูกต้อง');
+            }
+
+            return {
+                title: data.title || 'รายงานจำนวนผู้เรียนในแต่ละรายวิชา',
+                categories: data.x,
+                activeLearners: data.y1,
+                completedLearners: data.y2
+            };
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            throw error;
+        }
+    }
+
+    async generateReport() {
+        if (!this.startDate || !this.endDate) {
+            this.showToast('กรุณาเลือกทั้งวันที่เริ่มต้นและสิ้นสุด');
+            return;
+        }
+
+        if (this.startDate > this.endDate) {
+            this.showToast('วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด');
+            return;
+        }
+        this.hideError();
+        document.getElementById('results-container').classList.remove('show');
+        document.getElementById('loading').classList.add('show');
+        document.getElementById('table-body').innerHTML = '';
+        if (this.chartInstance) {
+            this.chartInstance.destroy();
+            this.chartInstance = null;
+        }
+        const loadingRow = document.createElement('tr');
+        loadingRow.innerHTML = `
+        <td colspan="4" style="text-align: center; color: #667eea;">
+            <div class="loading-spinner-small"></div>
+            กำลังโหลดข้อมูล...
+        </td>
+    `;
+        document.getElementById('table-body').appendChild(loadingRow);
+
+        try {
+            const data = await this.fetchCourseData(this.startDate, this.endDate);
+            document.getElementById('table-body').innerHTML = '';
+            this.currentData = data;
+            this.renderTable(data);
+            this.renderChart(data);
+
+            const startStr = formatBuddhistDate(this.startDate);
+            const endStr = formatBuddhistDate(this.endDate);
+            document.getElementById("current-date-range").textContent =
+                `ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`;
+            document.getElementById("report-title").innerHTML =
+                `<i class="fas fa-users"></i> ${data.title}`;
+
+            document.getElementById('loading').classList.remove('show');
+            document.getElementById('results-container').classList.add('show');
+
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('table-body').innerHTML = '';
+
+            this.showError(
+                `เกิดข้อผิดพลาด: ${error.message}`,
+                'ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบช่วงวันที่หรือลองใหม่ภายหลัง'
+            );
+            document.getElementById('loading').classList.remove('show');
+        }
+    }
+
+    renderTable(data) {
+        const tableBody = document.getElementById('table-body');
+        tableBody.innerHTML = '';
+
+        if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="3" style="text-align: center; color: #ef4444;">ไม่มีข้อมูลหรือข้อมูลไม่ถูกต้อง</td>`;
+            tableBody.appendChild(row);
+            return;
+        }
+        let totalActive = 0;
+        let totalCompleted = 0;
+        data.categories.forEach((category, index) => {
+            const active = data.activeLearners[index] || 0;
+            const completed = data.completedLearners[index] || 0;
+            totalActive += active;
+            totalCompleted += completed;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+            <td>${category || 'ไม่มีชื่อรายวิชา'}</td>
+            <td>${active.toLocaleString()}</td>
+            <td>${completed.toLocaleString()}</td>
+        `;
+            tableBody.appendChild(row);
+        });
+        const totalRow = document.createElement('tr');
+        totalRow.style.fontWeight = 'bold';
+        totalRow.style.backgroundColor = '#f7fafc';
+        totalRow.innerHTML = `
+            <td>รวม</td>
+            <td>${totalActive.toLocaleString()}</td>
+            <td>${totalCompleted.toLocaleString()}</td>
+        `;
+        tableBody.appendChild(totalRow);
+    }
+
+    generateColorPalette(count) {
+        const palette = [];
+        const hueStep = 360 / count;
+
+        for (let i = 0; i < count; i++) {
+            const hue = Math.floor(i * hueStep);
+            const saturation = 70 + Math.floor(Math.random() * 30);
+            const lightness = 50 + Math.floor(Math.random() * 20);
+            palette.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+        }
+
+        return palette;
+    }
+    renderChart(data) {
+        const ctx = document.getElementById('members-chart').getContext('2d');
+        if (this.chartInstance) {
+            this.chartInstance.destroy();
+        }
+        if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
+            return;
+        }
+
+        const count = data.categories.length;
+
+        const getScaleSettings = (dataCount) => {
+            if (dataCount <= 10) {
+                return {
+                    maxRotation: 0,
+                    minRotation: 0,
+                    fontSize: 12
+                };
+            } else if (dataCount <= 20) {
+                return {
+                    maxRotation: 30,
+                    minRotation: 30,
+                    fontSize: 10
+                };
+            } else if (dataCount <= 40) {
+                return {
+                    maxRotation: 60,
+                    minRotation: 60,
+                    fontSize: 9
+                };
+            } else {
+                return {
+                    maxRotation: 80,
+                    minRotation: 80,
+                    fontSize: 8
+                };
+            }
+        };
+
+        const scaleSettings = getScaleSettings(count);
+        const activeColor = '#FF7F50';  // Coral (orange shade)
+        const completedColor = '#4682B4'; // Steel Blue
+
+        this.chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.categories,
+                datasets: [
+                    {
+                        label: 'ผู้ลงทะเบียน (คน)',
+                        data: data.activeLearners,
+                        backgroundColor: activeColor,
+                        borderColor: activeColor,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'ผู้เรียนจบ (คน)',
+                        data: data.completedLearners,
+                        backgroundColor: completedColor,
+                        borderColor: completedColor,
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.dataset.label}: ${context.raw.toLocaleString()}`;
+                            }
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: false,
+                        ticks: {
+                            maxRotation: scaleSettings.maxRotation,
+                            minRotation: scaleSettings.minRotation,
+                            font: {
+                                size: scaleSettings.fontSize
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'จำนวน (คน)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    darkenHexColor(hex, factor) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+
+        const newR = Math.floor(r * (1 - factor));
+        const newG = Math.floor(g * (1 - factor));
+        const newB = Math.floor(b * (1 - factor));
+
+        return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+    }
+
+    adjustHSLLightness(hslColor, adjustment) {
+        const hslMatch = hslColor.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+        if (!hslMatch) return hslColor;
+
+        const hue = parseInt(hslMatch[1]);
+        const saturation = parseInt(hslMatch[2]);
+        const lightness = Math.max(15, Math.min(85, parseInt(hslMatch[3]) + adjustment));
+
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+
+    exportToExcel() {
+        if (!this.currentData || !this.startDate || !this.endDate) return;
+
+        const excelData = [
+            ['รายวิชา', 'ผู้ลงทะเบียน (คน)', 'ผู้เรียนจบ (คน)']
+        ];
+        const totalActive = this.currentData.activeLearners.reduce((a, b) => a + b, 0);
+        const totalCompleted = this.currentData.completedLearners.reduce((a, b) => a + b, 0);
+        const startStr = formatBuddhistDate(this.startDate);
+        const endStr = formatBuddhistDate(this.endDate);
+
+        this.currentData.categories.forEach((category, index) => {
+            const active = this.currentData.activeLearners[index] || 0;
+            const completed = this.currentData.completedLearners[index] || 0;
+
+            excelData.push([
+                category || 'ไม่มีชื่อรายวิชา',
+                active,
+                completed,
+                // total
+            ]);
+        });
+
+        excelData.push([
+            'รวม',
+            totalActive,
+            totalCompleted,
+        ]);
+
+
+        excelData.push([], [`ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`]);
+
+        const ws = XLSX.utils.aoa_to_sheet(excelData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "รายงานรายวิชา");
+
+        const startDateStr = this.startDate.toISOString().split('T')[0].replace(/-/g, '');
+        const endDateStr = this.endDate.toISOString().split('T')[0].replace(/-/g, '');
+        XLSX.writeFile(wb, 'subject-report.xlsx');
+    }
+
+    showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <div class="toast-content">${message}</div>
+        `;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 5000);
+    }
+
+    showError(message, details = '') {
+        const errorMessage = document.getElementById('error-message');
+        document.getElementById('error-content').textContent = message;
+        document.getElementById('error-details').textContent = details;
+        errorMessage.classList.add('show');
+    }
+
+    hideError() {
+        document.getElementById('error-message').classList.remove('show');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
 
@@ -988,5 +1471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         new CourseReportSystem(2); // หลักสูตร
     } else if (path.includes('report3.html')) {
         new CourseReportSystem(3); // รายวิชา
+    } else if (path.includes('report4.html')) {
+        new Report4();
     }
 });

@@ -1,4 +1,4 @@
-/* CSS จากไฟล์ styles.css เดิมทั้งหมด */
+/* styles.css - แบบ 3:2 และจัดกลาง */
 * {
     margin: 0;
     padding: 0;
@@ -56,11 +56,20 @@ body {
     border-bottom: 1px solid #e2e8f0;
 }
 
+/* ส่วนเลือกวันที่ */
 .date-picker-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
     align-items: center;
+}
+
+.date-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    width: 100%;
 }
 
 .date-input-group {
@@ -107,11 +116,90 @@ body {
     font-family: 'Kanit', sans-serif;
 }
 
-.date-input:focus {
-    outline: none;
-    border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+/* ส่วนเลือกวิชา - แบบ 3:2 และจัดกลาง */
+.course-selection-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.course-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.course-category {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    width: 100%;
+    min-width: 240px;
+    max-width: 320px;
+    transition: transform 0.3s ease;
+}
+
+.course-category:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.category-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2d3748;
+    padding: 12px;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    /* border-left: 4px solid #667eea; */
+}
+
+.course-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.course-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    background: #f8fafc;
+    border-radius: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+}
+
+.course-checkbox:hover {
+    background: #ebf4ff;
+    border-color: #a3bffa;
+}
+
+.course-checkbox input[type="checkbox"] {
+    min-width: 18px;
+    min-height: 18px;
+    accent-color: #667eea;
+    cursor: pointer;
+}
+
+/* ปุ่มต่างๆ */
+.submit-btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
 }
 
 .submit-btn {
@@ -127,9 +215,6 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 20px auto 0;
-    width: fit-content;
-    font-family: 'Kanit', sans-serif;
 }
 
 .submit-btn:hover {
@@ -137,14 +222,10 @@ body {
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
 }
 
-.submit-btn:active {
-    transform: translateY(0);
-}
-
-.current-date-range,
-.current-date {
+/* ส่วนผลลัพธ์ */
+.current-date-range {
     text-align: center;
-    color: #667eea;
+    color: #667ee4;
     font-weight: 600;
     margin-bottom: 20px;
     font-size: 1.1rem;
@@ -153,7 +234,7 @@ body {
     border-radius: 8px;
 }
 
-/* Table Styles */
+/* ตารางผลลัพธ์ */
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -190,11 +271,7 @@ tr:hover {
     background: #f8fafc;
 }
 
-tr:last-child td {
-    border-bottom: none;
-}
-
-/* Chart Styles */
+/* ส่วนกราฟ */
 .chart-container {
     position: relative;
     height: 400px;
@@ -202,7 +279,7 @@ tr:last-child td {
     margin-top: 20px;
 }
 
-/* Export Button */
+/* ปุ่ม Export */
 .export-btn {
     background: #48bb78;
     color: white;
@@ -217,6 +294,7 @@ tr:last-child td {
     gap: 8px;
     font-size: 0.95rem;
     font-family: 'Kanit', sans-serif;
+    margin-top: 10px;
 }
 
 .export-btn:hover {
@@ -225,7 +303,80 @@ tr:last-child td {
     box-shadow: 0 4px 10px rgba(56, 161, 105, 0.3);
 }
 
-/* Loading Styles */
+/* Responsive Design */
+@media (max-width: 1100px) {
+    .course-row {
+        flex-wrap: wrap;
+    }
+    
+    .course-category {
+        min-width: 280px;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 1.6rem;
+    }
+
+    .section {
+        padding: 20px 15px;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+    }
+
+    .course-row {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .course-category {
+        width: 100%;
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.4rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+    }
+
+    .current-date-range {
+        font-size: 1rem;
+    }
+
+    .submit-btn, .export-btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    .chart-container {
+        height: 300px;
+    }
+}
+
+/* Scrollbar */
+.course-column::-webkit-scrollbar {
+    width: 6px;
+}
+
+.course-column::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
+}
+
+.course-column::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Loading และ Error Message */
 .loading {
     display: none;
     text-align: center;
@@ -235,25 +386,6 @@ tr:last-child td {
 
 .loading.show {
     display: block;
-}
-
-/* เพิ่มในไฟล์ CSS */
-.loading-spinner-small {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(102, 126, 234, 0.3);
-    border-radius: 50%;
-    border-top-color: #667eea;
-    animation: spin 1s ease-in-out infinite;
-    margin-right: 8px;
-    vertical-align: middle;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
 }
 
 .spinner {
@@ -267,16 +399,10 @@ tr:last-child td {
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* Error Message Styles */
 .error-message {
     display: none;
     color: #ef4444;
@@ -297,152 +423,4 @@ tr:last-child td {
     font-size: 0.85rem;
     margin-top: 8px;
     color: #7f1d1d;
-}
-
-/* Toast Notification */
-.toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #ef4444;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 1000;
-    animation: slideIn 0.3s ease-out;
-    max-width: 90%;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-.toast i {
-    font-size: 1.2rem;
-}
-
-.toast-content {
-    flex: 1;
-}
-
-/* Flatpickr Custom Styles */
-.flatpickr-calendar {
-    font-family: 'Kanit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.flatpickr-day.selected {
-    background: #667eea;
-    border-color: #667eea;
-}
-
-.flatpickr-day.today {
-    border-color: #667eea;
-}
-
-.flatpickr-day:hover {
-    background: #e2e8f0;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .header h1 {
-        font-size: 1.6rem;
-    }
-
-    .section {
-        padding: 20px 15px;
-    }
-
-    .section-title {
-        font-size: 1.2rem;
-    }
-
-    .date-range-picker-container {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .date-input-group {
-        max-width: 100%;
-    }
-
-    .chart-container {
-        height: 350px;
-    }
-
-    th,
-    td {
-        padding: 12px 10px;
-        font-size: 0.9rem;
-    }
-
-    .toast {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: calc(100% - 20px);
-    }
-}
-
-@media (max-width: 480px) {
-    .header h1 {
-        font-size: 1.4rem;
-    }
-
-    .section-title {
-        font-size: 1.1rem;
-    }
-
-    .current-date-range,
-    .current-date {
-        font-size: 1rem;
-    }
-
-    .submit-btn,
-    .export-btn {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
-
-    .chart-container {
-        height: 300px;
-    }
-}
-
-/* เพิ่มสไตล์เฉพาะสำหรับ report1.html */
-.report1-specific .section-title i {
-    color: #667eea;
-    font-size: 1.1rem;
-}
-
-/* เพิ่มสไตล์เฉพาะสำหรับ report2.html */
-.report2-specific .date-input-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    margin-top: 15px;
-}
-
-/* เพิ่มสไตล์เฉพาะสำหรับ report3.html */
-.report3-specific .date-input-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    margin-top: 15px;
 }
