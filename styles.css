@@ -18,6 +18,12 @@ body {
     margin: 0 auto;
     padding: 0 15px;
 }
+@media (min-width: 1800px) {
+    .container {
+        max-width: 1800px;
+    }
+    
+}
 
 .header {
     text-align: center;
@@ -308,7 +314,7 @@ tr:hover {
     .course-row {
         flex-wrap: wrap;
     }
-    
+
     .course-category {
         min-width: 280px;
         max-width: 100%;
@@ -332,7 +338,7 @@ tr:hover {
         flex-direction: column;
         align-items: center;
     }
-    
+
     .course-category {
         width: 100%;
         max-width: 400px;
@@ -352,7 +358,8 @@ tr:hover {
         font-size: 1rem;
     }
 
-    .submit-btn, .export-btn {
+    .submit-btn,
+    .export-btn {
         padding: 10px 15px;
         font-size: 0.9rem;
     }
@@ -399,8 +406,13 @@ tr:hover {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .error-message {
@@ -423,4 +435,33 @@ tr:hover {
     font-size: 0.85rem;
     margin-top: 8px;
     color: #7f1d1d;
+}
+
+@media (min-width: 1800px) {
+
+    #first-row,
+    #second-row {
+        display: none !important;
+    }
+
+    #course-grid {
+        display: grid !important;
+        grid-template-columns: repeat(5, 1fr);
+        /* ✅ ตรงนี้แหละที่หายไป */
+        gap: 20px;
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 1799px) {
+
+    #first-row,
+    #second-row {
+        display: flex !important;
+    }
+
+    #course-grid {
+        display: none !important;
+    }
 }

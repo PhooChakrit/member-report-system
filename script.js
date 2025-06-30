@@ -1012,81 +1012,94 @@ class Report4 {
         this.loadCourseList();
 
     }
-async loadCourseList() {
-    const firstRow = document.getElementById('first-row');
-    const secondRow = document.getElementById('second-row');
-    if (!firstRow || !secondRow) return;
+    async loadCourseList() {
+        const firstRow = document.getElementById('first-row');
+        const secondRow = document.getElementById('second-row');
+        const courseGrid = document.getElementById('course-grid');
+        const isWideScreen = window.innerWidth >= 1800;
 
-    const groupNames = {
-        KD: '1. การพัฒนาองค์ความรู้ (KD)',
-        MS: '2. การพัฒนากรอบความคิด (MS)',
-        SL: '3. ทักษะเชิงยุทธศาสตร์ (SL)',
-        DS: '4. ทักษะดิจิทัล (DS)',
-        LS: '5. ทักษะด้านภาษา (LS)'
-    };
+        if (!firstRow || !secondRow || !courseGrid) return;
 
-    try {
-        const response = await axios.get('https://learningportal.ocsc.go.th/learningspaceapi/courses');
-        const allCourses = response.data;
+        // ซ่อนหรือแสดง layout ตามขนาดจอ
+        if (isWideScreen) {
+            firstRow.style.display = 'none';
+            secondRow.style.display = 'none';
+            courseGrid.style.display = 'grid';
+        } else {
+            firstRow.style.display = 'flex';
+            secondRow.style.display = 'flex';
+            courseGrid.style.display = 'none';
+        }
 
-        // เรียงลำดับกลุ่มตามที่กำหนด
-        const groupOrder = ['KD', 'MS', 'SL', 'DS', 'LS'];
-        
-        groupOrder.forEach((group, index) => {
-            const coursesInGroup = allCourses.filter(course => 
-                course.code?.startsWith(group)
-            );
-            
-            if (coursesInGroup.length > 0) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'course-category';
+        const groupNames = {
+            KD: '1. การพัฒนาองค์ความรู้ (KD)',
+            MS: '2. การพัฒนากรอบความคิด (MS)',
+            SL: '3. ทักษะเชิงยุทธศาสตร์ (SL)',
+            DS: '4. ทักษะดิจิทัล (DS)',
+            LS: '5. ทักษะด้านภาษา (LS)'
+        };
 
-                const title = document.createElement('div');
-                title.className = 'category-title';
-                title.textContent = groupNames[group] || group;
+        try {
+            const response = await axios.get('https://learningportal.ocsc.go.th/learningspaceapi/courses');
+            const allCourses = response.data;
 
-                const column = document.createElement('div');
-                column.className = 'course-column';
+            const groupOrder = ['KD', 'MS', 'SL', 'DS', 'LS'];
 
-                coursesInGroup.forEach(course => {
-                    const label = document.createElement('label');
-                    label.className = 'course-checkbox';
+            groupOrder.forEach((group, index) => {
+                const coursesInGroup = allCourses.filter(course =>
+                    course.code?.startsWith(group)
+                );
 
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.value = course.code;
-                    checkbox.className = 'course-filter';
+                if (coursesInGroup.length > 0) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'course-category';
 
-                    const courseText = document.createElement('span');
-                    courseText.textContent = `${course.code} - ${course.name}`;
+                    const title = document.createElement('div');
+                    title.className = 'category-title';
+                    title.textContent = groupNames[group] || group;
 
-                    label.appendChild(checkbox);
-                    label.appendChild(courseText);
-                    column.appendChild(label);
-                });
+                    const column = document.createElement('div');
+                    column.className = 'course-column';
 
-                wrapper.appendChild(title);
-                wrapper.appendChild(column);
+                    coursesInGroup.forEach(course => {
+                        const label = document.createElement('label');
+                        label.className = 'course-checkbox';
 
-                // แถวแรก 3 กลุ่มวิชา (KD, MS, SL)
-                if (index < 3) {
-                    firstRow.appendChild(wrapper);
-                } 
-                // แถวที่สอง 2 กลุ่มวิชา (DS, LS)
-                else {
-                    secondRow.appendChild(wrapper);
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.value = course.code;
+                        checkbox.className = 'course-filter';
+
+                        const courseText = document.createElement('span');
+                        courseText.textContent = `${course.code} - ${course.name}`;
+
+                        label.appendChild(checkbox);
+                        label.appendChild(courseText);
+                        column.appendChild(label);
+                    });
+
+                    wrapper.appendChild(title);
+                    wrapper.appendChild(column);
+
+                    const clone = wrapper.cloneNode(true);
+                    courseGrid.appendChild(wrapper);
+                    if (index < 3) {
+                        firstRow.appendChild(clone);
+                    } else {
+                        secondRow.appendChild(clone);
+                    }
+
                 }
-            }
-        });
+            });
 
-    } catch (error) {
-        console.error('ไม่สามารถโหลดรายวิชาได้:', error);
-        const container = document.getElementById('course-selection');
-        if (container) {
-            container.innerHTML = `<p class="error-message">เกิดข้อผิดพลาดในการโหลดรายวิชา</p>`;
+        } catch (error) {
+            console.error('ไม่สามารถโหลดรายวิชาได้:', error);
+            const container = document.getElementById('course-selection');
+            if (container) {
+                container.innerHTML = `<p class="error-message">เกิดข้อผิดพลาดในการโหลดรายวิชา</p>`;
+            }
         }
     }
-}
 
     updateDateDisplay() {
         if (this.startDate && this.endDate) {
@@ -1128,7 +1141,7 @@ async loadCourseList() {
                 throw new Error('กรุณาเลือกอย่างน้อยหนึ่งรายวิชา');
             }
             console.log(`Fetching data from: ${apiUrl}`);
-            
+
             const response = await axios.get(apiUrl);
             console.log(`Fetching data from: ${apiUrl}`);
 
@@ -1184,6 +1197,8 @@ async loadCourseList() {
         try {
             const data = await this.fetchCourseData(this.startDate, this.endDate);
             document.getElementById('table-body').innerHTML = '';
+            console.log('Fetched data:', data);
+
             this.currentData = data;
             this.renderTable(data);
             this.renderChart(data);
@@ -1271,32 +1286,63 @@ async loadCourseList() {
         const count = data.categories.length;
 
         const getScaleSettings = (dataCount) => {
-            if (dataCount <= 10) {
+            if (dataCount <= 3) {
                 return {
                     maxRotation: 0,
                     minRotation: 0,
-                    fontSize: 12
+                    fontSize: 8
+                };
+            } else if (dataCount <= 6) {
+                return {
+                    maxRotation: 20,
+                    minRotation: 20,
+                    fontSize: 7
+                };
+            } else if (dataCount <= 10) {
+                return {
+                    maxRotation:40,
+                    minRotation:40,
+                    fontSize: 7
+                };
+            } else if (dataCount <= 15) {
+                return {
+                    maxRotation: 50,
+                    minRotation: 50,
+                    fontSize: 6
                 };
             } else if (dataCount <= 20) {
                 return {
-                    maxRotation: 30,
-                    minRotation: 30,
-                    fontSize: 10
+                    maxRotation: 60,
+                    minRotation: 60,
+                    fontSize: 6
+                };
+            } else if (dataCount <= 30) {
+                return {
+                    maxRotation: 70,
+                    minRotation: 70,
+                    fontSize: 6
                 };
             } else if (dataCount <= 40) {
                 return {
-                    maxRotation: 60,
-                    minRotation: 60,
-                    fontSize: 9
+                    maxRotation: 80,
+                    minRotation: 80,
+                    fontSize: 6
+                };
+            } else if (dataCount <= 50) {
+                return {
+                    maxRotation: 85,
+                    minRotation: 85,
+                    fontSize: 6
                 };
             } else {
                 return {
-                    maxRotation: 80,
-                    minRotation: 80,
-                    fontSize: 8
+                    maxRotation: 90,
+                    minRotation: 90,
+                    fontSize: 6
                 };
             }
         };
+
 
         const scaleSettings = getScaleSettings(count);
         const activeColor = '#FF7F50';  // Coral (orange shade)
@@ -1369,28 +1415,9 @@ async loadCourseList() {
         });
     }
 
-    darkenHexColor(hex, factor) {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
 
-        const newR = Math.floor(r * (1 - factor));
-        const newG = Math.floor(g * (1 - factor));
-        const newB = Math.floor(b * (1 - factor));
 
-        return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
-    }
 
-    adjustHSLLightness(hslColor, adjustment) {
-        const hslMatch = hslColor.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
-        if (!hslMatch) return hslColor;
-
-        const hue = parseInt(hslMatch[1]);
-        const saturation = parseInt(hslMatch[2]);
-        const lightness = Math.max(15, Math.min(85, parseInt(hslMatch[3]) + adjustment));
-
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    }
 
     exportToExcel() {
         if (!this.currentData || !this.startDate || !this.endDate) return;
