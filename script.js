@@ -1140,10 +1140,10 @@ class Report4 {
             if (selectedCourses.length === 0) {
                 throw new Error('กรุณาเลือกอย่างน้อยหนึ่งรายวิชา');
             }
-            console.log(`Fetching data from: ${apiUrl}`);
+            // console.log(`Fetching data from: ${apiUrl}`);
 
             const response = await axios.get(apiUrl);
-            console.log(`Fetching data from: ${apiUrl}`);
+            // console.log(`Fetching data from: ${apiUrl}`);
 
             if (response.status !== 200) {
                 throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
@@ -1158,7 +1158,78 @@ class Report4 {
                 title: data.title || 'รายงานจำนวนผู้เรียนในแต่ละรายวิชา',
                 categories: data.x,
                 activeLearners: data.y1,
-                completedLearners: data.y2
+                completedLearners: data.y2,
+                trainees: data.trainees || [
+                    {
+                        "userType": "ประเภท",
+                        "nin": "เลขประจำตัวประชาชน",
+                        "title": "คำนำหน้า",
+                        "firstName": "ชื่อ",
+                        "lastName": "นามสกุล",
+                        "gender": "เพศ",
+                        "jobTitle": "ตำแหน่ง",
+                        "jobType": "ประเภทตำแหน่ง",
+                        "jobLevel": "ระดับตำแหน่ง",
+                        "ministry": "กระทรวง",
+                        "department": "กรม",
+                        "division": "กอง",
+                        "courseCode": "รหัสวิชา",
+                        "courseName": "ชื่อวิชา",
+                        "registrationDate": "วันเวลาที่ลงทะเบียนเรียน",
+                        "preTestScore": "คะแนน pre-test ที่ได้",
+                        "preTestFullScore": "คะแนนเต็ม pre-test",
+                        "postTestScore": "คะแนน post-test ที่ได้",
+                        "postTestFullScore": "คะแนนเต็ม post-test",
+                        "status": "สถานะ",
+                        "completeDate": "วันเวลาที่เรียนจบ"
+                    },
+                    {
+                        "userType": "เจ้าหน้าที่ของรัฐ",
+                        "nin": "xxxxxxxxxxxxx",
+                        "title": "นาย",
+                        "firstName": "ภาคิน",
+                        "lastName": "วิริยะโอฬาร",
+                        "gender": "ชาย",
+                        "jobTitle": "นักวิชาการคอมพิวเตอร์",
+                        "jobType": "พนักงานมหาวิทยาลัย",
+                        "jobLevel": "c5",
+                        "ministry": "กระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม",
+                        "department": "สำนักงานรัฐมนตรีกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม",
+                        "division": "มหาวิทยาลัยราขภัฏพระนคร",
+                        "courseCode": "DS26",
+                        "courseName": "AI Basic",
+                        "registrationDate": "6/1/2025 1:10:54 PM",
+                        "preTestScore": "0",
+                        "preTestFullScore": "30",
+                        "postTestScore": "0",
+                        "postTestFullScore": "30",
+                        "status": "กำลังศึกษา",
+                        "completeDate": "-"
+                    },
+                    {
+                        "userType": "ข้าราชการพลเรือนสามัญ",
+                        "nin": "xxxxxxxxxxxxx",
+                        "title": "นางสาว",
+                        "firstName": "จรูญรัตน์",
+                        "lastName": "ฉันท์ประภัสสร",
+                        "gender": "หญิง",
+                        "jobTitle": "นักวิเคราะห์นโยบายและแผน",
+                        "jobType": "วิชาการ",
+                        "jobLevel": "ระดับปฏิบัติการ",
+                        "ministry": "กระทรวงมหาดไทย",
+                        "department": "สำนักงานปลัดกระทรวงมหาดไทย",
+                        "division": "สำนักงานจังหวัดอุทัยธานี",
+                        "courseCode": "DS26",
+                        "courseName": "AI Basic",
+                        "registrationDate": "6/1/2025 2:00:39 PM",
+                        "preTestScore": "19",
+                        "preTestFullScore": "30",
+                        "postTestScore": "0",
+                        "postTestFullScore": "30",
+                        "status": "กำลังศึกษา",
+                        "completeDate": "-"
+                    }
+                ],
             };
 
         } catch (error) {
@@ -1274,6 +1345,7 @@ class Report4 {
 
         return palette;
     }
+
     renderChart(data) {
         const ctx = document.getElementById('members-chart').getContext('2d');
         if (this.chartInstance) {
@@ -1300,8 +1372,8 @@ class Report4 {
                 };
             } else if (dataCount <= 10) {
                 return {
-                    maxRotation:40,
-                    minRotation:40,
+                    maxRotation: 40,
+                    minRotation: 40,
                     fontSize: 7
                 };
             } else if (dataCount <= 15) {
@@ -1415,49 +1487,70 @@ class Report4 {
         });
     }
 
-
-
-
-
-    exportToExcel() {
+    async exportToExcel() {
         if (!this.currentData || !this.startDate || !this.endDate) return;
 
+        const X = window.XlsxPopulate;
+        const wb = await X.fromBlankAsync();
+
+        // ---------- Sheet1 ----------
         const excelData = [
             ['รายวิชา', 'ผู้ลงทะเบียน (คน)', 'ผู้เรียนจบ (คน)']
         ];
-        const totalActive = this.currentData.activeLearners.reduce((a, b) => a + b, 0);
-        const totalCompleted = this.currentData.completedLearners.reduce((a, b) => a + b, 0);
+        const totalActive = this.currentData.activeLearners.reduce((a, b) => a + (b || 0), 0);
+        const totalCompleted = this.currentData.completedLearners.reduce((a, b) => a + (b || 0), 0);
         const startStr = formatBuddhistDate(this.startDate);
         const endStr = formatBuddhistDate(this.endDate);
 
-        this.currentData.categories.forEach((category, index) => {
-            const active = this.currentData.activeLearners[index] || 0;
-            const completed = this.currentData.completedLearners[index] || 0;
-
-            excelData.push([
-                category || 'ไม่มีชื่อรายวิชา',
-                active,
-                completed,
-                // total
-            ]);
+        this.currentData.categories.forEach((category, i) => {
+            const active = this.currentData.activeLearners[i] || 0;
+            const completed = this.currentData.completedLearners[i] || 0;
+            excelData.push([category || 'ไม่มีชื่อรายวิชา', active, completed]);
         });
 
-        excelData.push([
-            'รวม',
-            totalActive,
-            totalCompleted,
-        ]);
-
-
+        excelData.push(['รวม', totalActive, totalCompleted]);
         excelData.push([], [`ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`]);
 
-        const ws = XLSX.utils.aoa_to_sheet(excelData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "รายงานรายวิชา");
+        const s1 = wb.addSheet("รายงานรายวิชา");
+        s1.cell("A1").value(excelData);
 
-        const startDateStr = this.startDate.toISOString().split('T')[0].replace(/-/g, '');
-        const endDateStr = this.endDate.toISOString().split('T')[0].replace(/-/g, '');
-        XLSX.writeFile(wb, 'subject-report.xlsx');
+        // ---------- Sheet2 ----------
+        const trainees = this.currentData.trainees ?? [];
+        const keys = [
+            "userType", "nin", "title", "firstName", "lastName", "gender",
+            "jobTitle", "jobType", "jobLevel", "ministry", "department", "division",
+            "courseCode", "courseName", "registrationDate", "preTestScore",
+            "preTestFullScore", "postTestScore", "postTestFullScore", "status", "completeDate"
+        ];
+        const headers = [
+            "ประเภท", "เลขประจำตัวประชาชน", "คำนำหน้า", "ชื่อ", "นามสกุล", "เพศ",
+            "ตำแหน่ง", "ประเภทตำแหน่ง", "ระดับตำแหน่ง", "กระทรวง", "กรม", "กอง",
+            "รหัสวิชา", "ชื่อวิชา", "วันเวลาที่ลงทะเบียนเรียน", "คะแนน pre-test ที่ได้",
+            "คะแนนเต็ม pre-test ที่ได้", "คะแนน post-test", "คะแนนเต็ม post-test ที่ได้", "สถานะ", "วันเวลาที่เรียนจบ"
+        ];
+
+        const rows = trainees.map(t => keys.map(k => t?.[k] ?? ""));
+        const s2 = wb.addSheet("รายชื่อผู้เข้าอบรม");
+        // s2.cell("A1").value([headers]);
+        if (rows.length) s2.cell("A1").value(rows);
+
+        wb.deleteSheet("Sheet1"); 
+
+        // ---------- Save ----------
+        const startDateStr = this.startDate.toISOString().slice(0, 10).replace(/-/g, '');
+        const endDateStr = this.endDate.toISOString().slice(0, 10).replace(/-/g, '');
+        const fname = `subject-report-${startDateStr}-${endDateStr}.xlsx`;
+
+        const blob = await wb.outputAsync({
+            type: "blob",
+            password: "csti-ocsc" 
+        });
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = fname;
+        a.click();
+        URL.revokeObjectURL(a.href);
     }
 
     showToast(message) {
