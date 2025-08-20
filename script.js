@@ -946,7 +946,7 @@ class CourseReportSystem {
 
         const startDateStr = this.startDate.toISOString().split('T')[0].replace(/-/g, '');
         const endDateStr = this.endDate.toISOString().split('T')[0].replace(/-/g, '');
-        XLSX.writeFile(wb, `${this.type === 2 ? 'course' : 'subject'}-report.xlsx`);
+        XLSX.writeFile(wb, `${this.type === 2 ? 'curriculum' : 'course'}-report.xlsx`);
     }
 
     showToast(message) {
@@ -1539,7 +1539,7 @@ class Report4 {
         // ---------- Save ----------
         const startDateStr = this.startDate.toISOString().slice(0, 10).replace(/-/g, '');
         const endDateStr = this.endDate.toISOString().slice(0, 10).replace(/-/g, '');
-        const fname = `subject-report-${startDateStr}-${endDateStr}.xlsx`;
+        const fname = `course-report-${startDateStr}-${endDateStr}.xlsx`;
 
         const blob = await wb.outputAsync({
             type: "blob",
