@@ -1,21 +1,105 @@
+const THAI_MONTHS = [
+    "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+];
+
+const API_BASE_URL = "https://learningportal.ocsc.go.th/learningspaceapi";
+const DEFAULT_LOADING_TEXT = "กำลังโหลดข้อมูล...";
+const REPORT5_API_TEMPLATE = "https://learningportal.ocsc.go.th/learningspaceapi/reports/5?lastdate=2025-01-01";
+
+if (window.Chart && Chart.defaults && !Chart.defaults.global) {
+    Chart.defaults.global = Chart.defaults;
+}
+
+export function formatBuddhistDate(date) {
+    if (!(date instanceof Date)) return "";
+    const day = date.getDate();
+    const month = THAI_MONTHS[date.getMonth()];
+    const year = date.getFullYear() + 543;
+    return `${day} ${month} ${year}`;
+}
+
+function formatChristianDate(date) {
+    return date.toISOString().split("T")[0];
+}
+
+function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerHTML = `
+        <i class="fas fa-exclamation-circle"></i>
+        <div class="toast-content">${message}</div>
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 5000);
+}
+
+function showError(message, details = "") {
+    const errorMessage = document.getElementById("error-message");
+    if (!errorMessage) return;
+
+    const content = document.getElementById("error-content");
+    const detail = document.getElementById("error-details");
+
+    if (content) content.textContent = message;
+    if (detail) detail.textContent = details;
+    errorMessage.classList.add("show");
+}
+
+function hideError() {
+    const errorMessage = document.getElementById("error-message");
+    if (errorMessage) {
+        errorMessage.classList.remove("show");
+    }
+}
+
+function showLoading() {
+    const loading = document.getElementById("loading");
+    const results = document.getElementById("results-container");
+    if (loading) loading.classList.add("show");
+    if (results) results.classList.remove("show");
+}
+
+function hideLoading(showResults = false) {
+    const loading = document.getElementById("loading");
+    const results = document.getElementById("results-container");
+    if (loading) loading.classList.remove("show");
+    if (showResults && results) {
+        results.classList.add("show");
+    }
+}
+
+function renderLoadingRow(tableBody, colspan) {
+    if (!tableBody) return;
+    tableBody.innerHTML = `
+        <tr>
+            <td colspan="${colspan}" style="text-align: center; color: #667eea;">
+                <div class="loading-spinner-small"></div>
+                ${DEFAULT_LOADING_TEXT}
+            </td>
+        </tr>
+    `;
+}
+
+function destroyChart(chartInstance) {
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+    return null;
+}
+
 export function setupThaiDatePicker(selector, onChangeCallback, defaultDate = "today") {
-    const monthsThai = [
-        "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-        "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
-    ];
-
-    const formatBuddhistDate = (date) => {
-        const day = date.getDate();
-        const month = monthsThai[date.getMonth()];
-        const year = date.getFullYear() + 543;
-        return `${day} ${month} ${year}`;
-    };
-
     const convertToBuddhistYear = (instance) => {
         setTimeout(() => {
             const yearInputs = instance.calendarContainer.querySelectorAll(".cur-year");
-            yearInputs.forEach(el => {
-                let year = parseInt(el.value || el.textContent);
+            yearInputs.forEach((el) => {
+                const year = parseInt(el.value || el.textContent, 10);
                 if (!isNaN(year) && year < 2500) {
                     const buddhistYear = year + 543;
                     if (el.tagName === "INPUT") {
@@ -38,265 +122,348 @@ export function setupThaiDatePicker(selector, onChangeCallback, defaultDate = "t
     return flatpickr(selector, {
         locale: "th",
         dateFormat: "d M Y",
-        defaultDate: defaultDate,
-        onReady: (selectedDates, dateStr, instance) => {
+        defaultDate,
+        onReady: (selectedDates, _dateStr, instance) => {
             convertToBuddhistYear(instance);
             overrideDisplayedDate(instance);
             if (selectedDates.length > 0) {
                 const date = selectedDates[0];
-                instance.input.dataset.isoDate = date.toISOString().split('T')[0];
+                instance.input.dataset.isoDate = formatChristianDate(date);
             }
         },
-        onOpen: (selectedDates, dateStr, instance) => {
+        onOpen: (_selectedDates, _dateStr, instance) => {
             convertToBuddhistYear(instance);
         },
-        onMonthChange: (selectedDates, dateStr, instance) => {
+        onMonthChange: (_selectedDates, _dateStr, instance) => {
             convertToBuddhistYear(instance);
         },
-        onYearChange: (selectedDates, dateStr, instance) => {
+        onYearChange: (_selectedDates, _dateStr, instance) => {
             convertToBuddhistYear(instance);
         },
-        onChange: (selectedDates, dateStr, instance) => {
+        onChange: (selectedDates, _dateStr, instance) => {
             if (selectedDates.length === 0) return;
             const selectedDate = selectedDates[0];
             selectedDate.setHours(12, 0, 0, 0);
-            instance.input.dataset.isoDate = selectedDate.toISOString().split('T')[0];
+            instance.input.dataset.isoDate = formatChristianDate(selectedDate);
             instance.input.value = formatBuddhistDate(selectedDate);
             convertToBuddhistYear(instance);
             if (onChangeCallback) {
                 onChangeCallback(selectedDate);
             }
         },
-        onClose: (selectedDates, dateStr, instance) => {
+        onClose: (_selectedDates, _dateStr, instance) => {
             overrideDisplayedDate(instance);
         }
     });
 }
 
-export function formatBuddhistDate(date) {
-    const monthsThai = [
-        "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-        "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
-    ];
-    const day = date.getDate();
-    const month = monthsThai[date.getMonth()];
-    const year = date.getFullYear() + 543;
-    return `${day} ${month} ${year}`;
-}
+export function setDefaultThaiDate(selector, date = new Date()) {
+    const targetDate = new Date(date);
+    targetDate.setHours(12, 0, 0, 0);
 
-export function setDefaultThaiDate(selector) {
-    const today = new Date();
-    today.setHours(12, 0, 0, 0);
     const input = document.querySelector(selector);
     if (input) {
-        input.value = formatBuddhistDate(today);
-        input.dataset.isoDate = today.toISOString().split('T')[0];
+        input.value = formatBuddhistDate(targetDate);
+        input.dataset.isoDate = formatChristianDate(targetDate);
     }
-    return today;
+    return targetDate;
 }
 
-
-// คลาส MemberReportSystem สำหรับ report1.html
-class MemberReportSystem {
-    constructor() {
+class BaseReport {
+    constructor(config) {
+        this.config = config;
         this.chartInstance = null;
         this.currentData = null;
+    }
+
+    getElement(selector) {
+        if (!selector) return null;
+        return document.querySelector(selector);
+    }
+
+    get tableBody() {
+        return this.getElement(this.config.tableBodySelector);
+    }
+
+    get chartContext() {
+        const canvasId = this.config.chartElementId;
+        if (!canvasId) return null;
+        const canvas = document.getElementById(canvasId);
+        return canvas && canvas.getContext ? canvas.getContext("2d") : null;
+    }
+
+    get loadingColspan() {
+        return this.config.loadingColspan ?? 3;
+    }
+
+    clearTable() {
+        const body = this.tableBody;
+        if (body) {
+            body.innerHTML = "";
+        }
+    }
+
+    renderLoadingState() {
+        const body = this.tableBody;
+        if (body) {
+            renderLoadingRow(body, this.loadingColspan);
+        }
+    }
+
+    destroyExistingChart() {
+        this.chartInstance = destroyChart(this.chartInstance);
+    }
+
+    updateReportTitle(title) {
+        const el = this.getElement(this.config.reportTitleSelector);
+        if (el && title) {
+            const icon = this.config.titleIcon;
+            el.innerHTML = icon ? `<i class="${icon}"></i> ${title}` : title;
+        }
+    }
+
+    onAfterRender(_data) {}
+}
+
+class SingleDateReport extends BaseReport {
+    constructor(config) {
+        super(config);
         this.selectedDate = null;
         this.init();
     }
 
     init() {
-        setupThaiDatePicker('#report-date', (selectedDate) => {
-            this.selectedDate = selectedDate;
-            const buddhistDateStr = formatBuddhistDate(selectedDate);
-            document.getElementById("current-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
-        });
+        const {
+            dateInputSelector,
+            defaultDateProvider,
+            submitButtonSelector,
+            exportButtonSelector,
+            autoSubmitOnChange
+        } = this.config;
 
-        this.selectedDate = setDefaultThaiDate('#report-date');
-        document.getElementById("current-date").textContent =
-            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.selectedDate)}`;
-
-        this.setupEventListeners();
-        this.generateReport();
-    }
-
-    setupEventListeners() {
-        document.getElementById('submit-btn').addEventListener('click', () => {
-            this.generateReport();
-        });
-
-        document.getElementById('export-btn').addEventListener('click', () => {
-            this.exportToExcel();
-        });
-    }
-
-    showToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <div class="toast-content">${message}</div>
-        `;
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 5000);
-    }
-
-    showError(message, details = '') {
-        const errorMessage = document.getElementById('error-message');
-        document.getElementById('error-content').textContent = message;
-        document.getElementById('error-details').textContent = details;
-        errorMessage.classList.add('show');
-    }
-
-    hideError() {
-        document.getElementById('error-message').classList.remove('show');
-    }
-
-    async fetchMemberData(isoDate) {
-        try {
-            const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/1?lastdate=${isoDate}`;
-            const response = await axios.get(apiUrl);
-
-            if (response.status === 404) {
-                throw new Error('404 Not Found - ไม่พบข้อมูล');
-            } else if (response.status === 500) {
-                throw new Error('500 Internal Server Error - ข้อผิดพลาดเซิร์ฟเวอร์');
-            } else if (response.status === 408) {
-                throw new Error('408 Request Timeout - การร้องขอหมดเวลา');
-            } else if (response.status !== 200) {
-                throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+        setupThaiDatePicker(dateInputSelector, (date) => {
+            this.selectedDate = date;
+            this.updateCurrentDateLabel(date);
+            if (autoSubmitOnChange) {
+                this.generateReport();
             }
+        });
 
-            const data = response.data;
-            if (!data || !Array.isArray(data.x) || !Array.isArray(data.y)) {
-                throw new Error('รูปแบบข้อมูลจาก API ไม่ถูกต้อง');
-            }
+        const defaultDate = defaultDateProvider ? defaultDateProvider() : new Date();
+        this.selectedDate = setDefaultThaiDate(dateInputSelector, defaultDate);
+        this.updateCurrentDateLabel(this.selectedDate);
 
-            return {
-                title: data.title,
-                categories: data.x,
-                counts: data.y
-            };
-
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            throw error;
+        const submitBtn = this.getElement(submitButtonSelector);
+        if (submitBtn) {
+            submitBtn.addEventListener("click", () => this.generateReport());
         }
+
+        const exportBtn = this.getElement(exportButtonSelector);
+        if (exportBtn) {
+            exportBtn.addEventListener("click", () => {
+                if (!this.currentData) {
+                    showToast("ไม่มีข้อมูลสำหรับส่งออก");
+                    return;
+                }
+                this.exportToExcel();
+            });
+        }
+
+        this.afterInit();
+
+        if (this.config.autoSubmitOnLoad) {
+            this.generateReport();
+        }
+    }
+
+    afterInit() {}
+
+    updateCurrentDateLabel(date) {
+        const label = this.getElement(this.config.currentDateLabelSelector);
+        if (!label || !date) return;
+
+        const formatter = this.config.currentDateLabelFormatter ||
+            ((value) => `ข้อมูล ณ วันที่ ${formatBuddhistDate(value)}`);
+
+        label.textContent = formatter(date);
+    }
+
+    getIsoDate() {
+        if (this.selectedDate) {
+            return formatChristianDate(this.selectedDate);
+        }
+        const input = this.getElement(this.config.dateInputSelector);
+        return input?.dataset.isoDate;
+    }
+
+    translateError(error) {
+        return {
+            toast: `เกิดข้อผิดพลาด: ${error.message}`,
+            details: this.config.genericErrorDetail || "ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่ภายหลัง"
+        };
     }
 
     async generateReport() {
-        const dateInput = document.getElementById('report-date');
-        const isoDate = this.selectedDate
-            ? this.selectedDate.toISOString().split('T')[0]
-            : dateInput.dataset.isoDate;
-
+        const isoDate = this.getIsoDate();
         if (!isoDate) {
-            this.showToast('กรุณาเลือกวันที่');
+            showToast(this.config.missingDateMessage || "กรุณาเลือกวันที่");
             return;
         }
 
-        // ซ่อนผลลัพธ์เก่าและแสดง loading
-        this.hideError();
-        document.getElementById('results-container').classList.remove('show');
-        document.getElementById('loading').classList.add('show');
-
-        // ล้างตารางและกราฟเก่า
-        document.getElementById('table-body').innerHTML = '';
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
-            this.chartInstance = null;
-        }
-
-        // แสดงสถานะ loading ในตาราง
-        const loadingRow = document.createElement('tr');
-        loadingRow.innerHTML = `
-        <td colspan="3" style="text-align: center; color: #667eea;">
-            <div class="loading-spinner-small"></div>
-            กำลังโหลดข้อมูล...
-        </td>
-    `;
-        document.getElementById('table-body').appendChild(loadingRow);
+        hideError();
+        showLoading();
+        this.clearTable();
+        this.renderLoadingState();
+        this.destroyExistingChart();
 
         try {
-            const data = await this.fetchMemberData(isoDate);
+            const data = await this.fetchData(isoDate);
+            this.currentData = data;
 
-            // ล้างสถานะ loading
-            document.getElementById('table-body').innerHTML = '';
-
+            this.clearTable();
             this.renderTable(data);
             this.renderChart(data);
-
-            const buddhistDate = formatBuddhistDate(this.selectedDate || new Date(isoDate));
-            document.getElementById("current-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDate}`;
-            document.getElementById("report-title").innerHTML = `<i class="fas fa-users"></i> ${data.title}`;
-
-            document.getElementById('loading').classList.remove('show');
-            document.getElementById('results-container').classList.add('show');
-
+            this.updateReportTitle(data?.title);
+            this.updateCurrentDateLabel(this.selectedDate || new Date(isoDate));
+            hideLoading(true);
+            this.onAfterRender(data);
         } catch (error) {
-            console.error('Error:', error);
-            // ล้างสถานะ loading เมื่อเกิดข้อผิดพลาด
-            document.getElementById('table-body').innerHTML = '';
-
-            this.showToast(`เกิดข้อผิดพลาด: ${error.message}`);
-
-            let errorDetails = '';
-            if (error.message.includes('500')) {
-                errorDetails = 'เซิร์ฟเวอร์ประสบปัญหาภายใน กรุณาลองใหม่ในภายหลัง';
-            } else if (error.message.includes('408')) {
-                errorDetails = 'การเชื่อมต่อใช้เวลานานเกินไป กรุณาลองใหม่หรือตรวจสอบเครือข่ายของคุณ';
-            } else {
-                errorDetails = 'ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบวันที่หรือลองใหม่ภายหลัง';
+            console.error("Error:", error);
+            this.clearTable();
+            const { toast, details } = this.translateError(error);
+            if (toast) {
+                showToast(toast);
             }
-
-            this.showError(`เกิดข้อผิดพลาด: ${error.message}`, errorDetails);
-            document.getElementById('loading').classList.remove('show');
+            showError(toast || "เกิดข้อผิดพลาด", details || "");
+            hideLoading();
         }
     }
 
-    renderTable(data) {
-        const tableBody = document.getElementById('table-body');
-        tableBody.innerHTML = '';
+    // To be implemented by subclasses.
+    fetchData() {
+        throw new Error("fetchData must be implemented.");
+    }
 
-        if (!data || !data.counts || !data.categories ||
-            !Array.isArray(data.counts) || !Array.isArray(data.categories)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="3" style="text-align: center; color: #ef4444;">ไม่มีข้อมูลหรือข้อมูลไม่ถูกต้อง</td>`;
-            tableBody.appendChild(row);
+    renderTable() {}
+    renderChart() {}
+    exportToExcel() {}
+}
+
+class MemberReport extends SingleDateReport {
+    constructor(options = {}) {
+        const autoSubmitOnLoad = options.autoSubmitOnLoad ?? true;
+        const autoSubmitOnChange = options.autoSubmitOnChange ?? false;
+        super({
+            dateInputSelector: "#report-date",
+            currentDateLabelSelector: "#current-date",
+            reportTitleSelector: "#report-title",
+            tableBodySelector: "#table-body",
+            chartElementId: "members-chart",
+            submitButtonSelector: "#submit-btn",
+            exportButtonSelector: "#export-btn",
+            autoSubmitOnLoad: false,
+            autoSubmitOnChange,
+            defaultDateProvider: options.defaultDateProvider,
+            titleIcon: "fas fa-users",
+            loadingColspan: 3,
+            currentDateLabelFormatter: (date) => `ข้อมูล ณ วันที่ ${formatBuddhistDate(date)}`,
+            genericErrorDetail: "ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบวันที่หรือลองใหม่ภายหลัง"
+        });
+        this.apiTemplate = options.apiTemplate ?? `${API_BASE_URL}/reports/1?lastdate=`;
+        this.exportFileName = options.exportFileName ?? "member-report.xlsx";
+        if (autoSubmitOnLoad) {
+            this.generateReport();
+        }
+    }
+
+    buildApiUrl(isoDate) {
+        if (this.apiTemplate.includes("2025-01-01")) {
+            return this.apiTemplate.replace("2025-01-01", isoDate);
+        }
+        if (this.apiTemplate.includes("{lastdate}")) {
+            return this.apiTemplate.replace("{lastdate}", isoDate);
+        }
+        if (this.apiTemplate.endsWith("lastdate=") || this.apiTemplate.endsWith("=")) {
+            return `${this.apiTemplate}${isoDate}`;
+        }
+        const separator = this.apiTemplate.includes("?") ? "&" : "?";
+        return `${this.apiTemplate}${separator}lastdate=${isoDate}`;
+    }
+
+    async fetchData(isoDate) {
+        const apiUrl = this.buildApiUrl(isoDate);
+        const response = await axios.get(apiUrl);
+
+        if (response.status === 404) {
+            throw new Error("404 Not Found - ไม่พบข้อมูล");
+        } else if (response.status === 500) {
+            throw new Error("500 Internal Server Error - ข้อผิดพลาดเซิร์ฟเวอร์");
+        } else if (response.status === 408) {
+            throw new Error("408 Request Timeout - การร้องขอหมดเวลา");
+        } else if (response.status !== 200) {
+            throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = response.data;
+        if (!data || !Array.isArray(data.x) || !Array.isArray(data.y)) {
+            throw new Error("รูปแบบข้อมูลจาก API ไม่ถูกต้อง");
+        }
+
+        return {
+            title: data.title,
+            categories: data.x,
+            counts: data.y
+        };
+    }
+
+    translateError(error) {
+        let errorDetails = "ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบวันที่หรือลองใหม่ภายหลัง";
+        if (error.message.includes("500")) {
+            errorDetails = "เซิร์ฟเวอร์ประสบปัญหาภายใน กรุณาลองใหม่ในภายหลัง";
+        } else if (error.message.includes("408")) {
+            errorDetails = "การเชื่อมต่อใช้เวลานานเกินไป กรุณาลองใหม่หรือตรวจสอบเครือข่ายของคุณ";
+        }
+
+        return {
+            toast: `เกิดข้อผิดพลาด: ${error.message}`,
+            details: errorDetails
+        };
+    }
+
+    renderTable(data) {
+        const tableBody = this.tableBody;
+        if (!tableBody) return;
+
+        if (!data || !Array.isArray(data.counts) || !Array.isArray(data.categories)) {
+            tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ef4444;">ไม่มีข้อมูลหรือข้อมูลไม่ถูกต้อง</td></tr>`;
             return;
         }
 
         const total = data.counts.reduce((sum, count) => sum + count, 0);
-
-        const rawPercentages = data.counts.map(c => (total > 0 ? (c / total) * 100 : 0));
-        const roundedPercentages = rawPercentages.map(p => Math.round(p * 100) / 100);
+        const rawPercentages = data.counts.map((count) => (total > 0 ? (count / total) * 100 : 0));
+        const roundedPercentages = rawPercentages.map((p) => Math.round(p * 100) / 100);
         let percentageSum = roundedPercentages.reduce((a, b) => a + b, 0);
+        const adjustment = Math.round((100 - percentageSum) * 100) / 100;
+        if (roundedPercentages.length > 0) {
+            roundedPercentages[roundedPercentages.length - 1] += adjustment;
+        }
 
-        let adjustment = Math.round((100 - percentageSum) * 100) / 100;
-        roundedPercentages[roundedPercentages.length - 1] += adjustment;
-
+        tableBody.innerHTML = "";
         data.categories.forEach((category, index) => {
             const count = data.counts[index] || 0;
-            const percentage = roundedPercentages[index].toFixed(2);
-
-            const row = document.createElement('tr');
+            const percentage = (roundedPercentages[index] ?? 0).toFixed(2);
+            const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${category || 'ไม่มีชื่อประเภท'}</td>
+                <td>${category || "ไม่มีชื่อประเภท"}</td>
                 <td>${count.toLocaleString()}</td>
                 <td>${percentage}%</td>
             `;
             tableBody.appendChild(row);
         });
 
-        const totalRow = document.createElement('tr');
-        totalRow.style.fontWeight = 'bold';
-        totalRow.style.backgroundColor = '#f7fafc';
+        const totalRow = document.createElement("tr");
+        totalRow.style.fontWeight = "bold";
+        totalRow.style.backgroundColor = "#f7fafc";
         totalRow.innerHTML = `
             <td>รวมทั้งหมด</td>
             <td>${total.toLocaleString()}</td>
@@ -306,38 +473,26 @@ class MemberReportSystem {
 
         this.currentData = {
             ...data,
-            total: total
+            total
         };
     }
 
     renderChart(data) {
-        const ctx = document.getElementById('members-chart').getContext('2d');
-
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
-        }
-
-        if (!data || !data.counts || !data.categories ||
-            !Array.isArray(data.counts) || !Array.isArray(data.categories)) {
+        const ctx = this.chartContext;
+        if (!ctx || !data || !Array.isArray(data.counts) || !Array.isArray(data.categories)) {
             return;
         }
 
-        const colors = [
-            '#003f5c',
-            '#58508d',
-            '#bc5090',
-            '#ff6361',
-            '#ffa600',
-        ];
+        const colors = ["#003f5c", "#58508d", "#bc5090", "#ff6361", "#ffa600"];
 
         this.chartInstance = new Chart(ctx, {
-            type: 'doughnut',
+            type: "doughnut",
             data: {
                 labels: data.categories,
                 datasets: [{
                     data: data.counts,
                     backgroundColor: colors,
-                    borderColor: '#ffffff',
+                    borderColor: "#ffffff",
                     borderWidth: 2
                 }]
             },
@@ -346,256 +501,321 @@ class MemberReportSystem {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
+                        position: "bottom",
                         labels: {
                             padding: 15,
-                            font: {
-                                size: 12
-                            },
+                            font: { size: 12 },
                             usePointStyle: true
                         }
                     },
                     tooltip: {
                         callbacks: {
-                            label: function (context) {
+                            label: (context) => {
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((context.raw / total) * 100).toFixed(2);
+                                const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(2) : "0.00";
                                 return `${context.label}: ${context.raw.toLocaleString()} คน (${percentage}%)`;
                             }
                         }
                     }
                 },
-                cutout: '60%'
+                cutout: "60%"
             }
         });
     }
 
     exportToExcel() {
-        if (!this.currentData) return;
+        if (!this.currentData) {
+            return;
+        }
 
         const excelData = [
-            ['ประเภทสมาชิก', 'จำนวน (คน)', 'เปอร์เซ็นต์ (%)']
+            ["ประเภทสมาชิก", "จำนวน (คน)", "เปอร์เซ็นต์ (%)"]
         ];
 
-        const total = this.currentData.total;
-        const buddhistDateStr = formatBuddhistDate(this.selectedDate || new Date());
-        const rawPercentages = this.currentData.counts.map(c => (total > 0 ? (c / total) * 100 : 0));
-        const roundedPercentages = rawPercentages.map(p => Math.round(p * 100) / 100);
+        const total = this.currentData.total ?? 0;
+        const rawPercentages = this.currentData.counts.map((count) => (total > 0 ? (count / total) * 100 : 0));
+        const roundedPercentages = rawPercentages.map((p) => Math.round(p * 100) / 100);
         let percentageSum = roundedPercentages.reduce((a, b) => a + b, 0);
-        let adjustment = Math.round((100 - percentageSum) * 100) / 100;
-        roundedPercentages[roundedPercentages.length - 1] += adjustment;
+        const adjustment = Math.round((100 - percentageSum) * 100) / 100;
+        if (roundedPercentages.length > 0) {
+            roundedPercentages[roundedPercentages.length - 1] += adjustment;
+        }
 
         this.currentData.categories.forEach((category, index) => {
             const count = this.currentData.counts[index] || 0;
-            const percentage = roundedPercentages[index].toFixed(2);
-
-            excelData.push([
-                category || 'ไม่มีชื่อประเภท',
-                count,
-                percentage + '%'
-            ]);
+            const percentage = (roundedPercentages[index] ?? 0).toFixed(2);
+            excelData.push([category || "ไม่มีชื่อประเภท", count, `${percentage}%`]);
         });
 
-        excelData.push([
-            'รวมทั้งหมด',
-            total,
-            '100.00%',
-        ]);
+        excelData.push(["รวมทั้งหมด", total, "100.00%"]);
         excelData.push([]);
-        excelData.push([`ข้อมูล ณ วันที่ ${buddhistDateStr}`]);
+        const labelDate = this.selectedDate || new Date();
+        excelData.push([`ข้อมูล ณ วันที่ ${formatBuddhistDate(labelDate)}`]);
 
         const ws = XLSX.utils.aoa_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "รายงานสมาชิก");
-
-        const dateInput = document.getElementById('report-date');
-        const christianDate = dateInput.dataset.isoDate.replace(/-/g, '');
-        XLSX.writeFile(wb, `member-report.xlsx`);
+        XLSX.writeFile(wb, this.exportFileName);
     }
 }
 
-// คลาส CourseReportSystem สำหรับ report2.html และ report3.html
-class CourseReportSystem {
-    constructor(type = 2) {
-        this.chartInstance = null;
-        this.currentData = null;
+class ActiveUsersReport extends MemberReport {
+    constructor() {
+        super({
+            apiTemplate: REPORT5_API_TEMPLATE,
+            defaultDateProvider: () => {
+                const date = new Date();
+                date.setDate(date.getDate() - 365);
+                return date;
+            },
+            autoSubmitOnLoad: true,
+            exportFileName: "active-users-report.xlsx"
+        });
+    }
+}
+
+class DateRangeReport extends BaseReport {
+    constructor(config) {
+        super(config);
         this.startDate = null;
         this.endDate = null;
-        this.colorPalette = this.generateColorPalette(100);
-        this.type = type; // 2 = หลักสูตร, 3 = รายวิชา
         this.init();
     }
 
-    init() {
-        setupThaiDatePicker('#start-date', (startDate) => {
-            this.startDate = startDate;
-            const buddhistDateStr = formatBuddhistDate(startDate);
-            document.getElementById("start-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
-        });
-
-        this.startDate = setDefaultThaiDate('#start-date');
-        document.getElementById("start-date").textContent =
-            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.startDate)}`;
-
-        setupThaiDatePicker('#end-date', (endDate) => {
-            this.endDate = endDate;
-            const buddhistDateStr = formatBuddhistDate(endDate);
-            document.getElementById("end-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
-        });
-
-        this.endDate = setDefaultThaiDate('#end-date');
-        document.getElementById("end-date").textContent =
-            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.endDate)}`;
-        this.updateDateDisplay();
-        this.setupEventListeners();
-        this.generateReport();
+    get loadingColspan() {
+        return this.config.loadingColspan ?? 4;
     }
 
-    updateDateDisplay() {
-        if (this.startDate && this.endDate) {
-            const startStr = formatBuddhistDate(this.startDate);
-            const endStr = formatBuddhistDate(this.endDate);
-            document.getElementById("current-date-range").textContent =
-                `ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`;
+    init() {
+        const {
+            startDateSelector,
+            endDateSelector,
+            defaultStartDateProvider,
+            defaultEndDateProvider,
+            submitButtonSelector,
+            exportButtonSelector
+        } = this.config;
+
+        setupThaiDatePicker(startDateSelector, (date) => {
+            this.startDate = date;
+            this.updateDateRangeLabel();
+        });
+
+        setupThaiDatePicker(endDateSelector, (date) => {
+            this.endDate = date;
+            this.updateDateRangeLabel();
+        });
+
+        const defaultStart = defaultStartDateProvider ? defaultStartDateProvider() : new Date();
+        const defaultEnd = defaultEndDateProvider ? defaultEndDateProvider() : new Date();
+
+        this.startDate = setDefaultThaiDate(startDateSelector, defaultStart);
+        this.endDate = setDefaultThaiDate(endDateSelector, defaultEnd);
+        this.updateDateRangeLabel();
+
+        const submitBtn = this.getElement(submitButtonSelector);
+        if (submitBtn) {
+            submitBtn.addEventListener("click", () => this.generateReport());
+        }
+
+        const exportBtn = this.getElement(exportButtonSelector);
+        if (exportBtn) {
+            exportBtn.addEventListener("click", () => {
+                if (!this.currentData) {
+                    showToast("ไม่มีข้อมูลสำหรับส่งออก");
+                    return;
+                }
+                this.exportToExcel();
+            });
+        }
+
+        this.afterInit();
+
+        if (this.config.autoSubmitOnLoad) {
+            this.generateReport();
         }
     }
 
-    formatChristianDate(date) {
-        return date.toISOString().split('T')[0];
+    afterInit() {}
+
+    updateDateRangeLabel() {
+        const label = this.getElement(this.config.currentDateRangeLabelSelector);
+        if (!label || !this.startDate || !this.endDate) return;
+
+        const formatter = this.config.currentDateRangeFormatter ||
+            ((start, end) => `ข้อมูลระหว่างวันที่ ${formatBuddhistDate(start)} ถึง ${formatBuddhistDate(end)}`);
+
+        label.textContent = formatter(this.startDate, this.endDate);
     }
 
-    setupEventListeners() {
-        document.getElementById('submit-btn').addEventListener('click', () => {
-            this.generateReport();
-        });
-
-        document.getElementById('export-btn').addEventListener('click', () => {
-            this.exportToExcel();
-        });
+    validateBeforeFetch() {
+        if (!this.startDate || !this.endDate) {
+            showToast("กรุณาเลือกทั้งวันที่เริ่มต้นและสิ้นสุด");
+            return false;
+        }
+        if (this.startDate > this.endDate) {
+            showToast("วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด");
+            return false;
+        }
+        return true;
     }
 
-    async fetchCourseData(startDate, endDate) {
+    translateError(error) {
+        return {
+            toast: `เกิดข้อผิดพลาด: ${error.message}`,
+            details: this.config.genericErrorDetail || "ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่ภายหลัง"
+        };
+    }
+
+    async generateReport() {
+        if (!this.validateBeforeFetch()) {
+            return;
+        }
+
+        hideError();
+        showLoading();
+        this.clearTable();
+        this.renderLoadingState();
+        this.destroyExistingChart();
+
         try {
-            const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/${this.type}?startDate=${this.formatChristianDate(startDate)}&endDate=${this.formatChristianDate(endDate)}`;
-            const response = await axios.get(apiUrl);
-            console.log(`Fetching data from: ${apiUrl}`);
+            const data = await this.fetchData(this.startDate, this.endDate);
+            this.currentData = data;
 
+            this.clearTable();
+            this.renderTable(data);
+            this.renderChart(data);
+            this.updateDateRangeLabel();
+            this.updateReportTitle(data?.title);
+            if (data?.isEmpty) {
+                showToast("ไม่พบข้อมูลในช่วงวันที่ที่เลือก");
+            }
+            hideLoading(true);
+            this.onAfterRender(data);
+        } catch (error) {
+            console.error("Error:", error);
+            this.clearTable();
+            const { toast, details } = this.translateError(error);
+            if (toast) {
+                showToast(toast);
+            }
+            showError(toast || "เกิดข้อผิดพลาด", details || "");
+            hideLoading();
+        }
+    }
+
+    // To be implemented by subclasses.
+    fetchData() {
+        throw new Error("fetchData must be implemented.");
+    }
+
+    renderTable() {}
+    renderChart() {}
+    exportToExcel() {}
+}
+
+class CourseReportSystem extends DateRangeReport {
+    constructor(type = 2) {
+        const autoSubmitOnLoad = true;
+        super({
+            startDateSelector: "#start-date",
+            endDateSelector: "#end-date",
+            submitButtonSelector: "#submit-btn",
+            exportButtonSelector: "#export-btn",
+            tableBodySelector: "#table-body",
+            chartElementId: "members-chart",
+            currentDateRangeLabelSelector: "#current-date-range",
+            reportTitleSelector: "#report-title",
+            titleIcon: "fas fa-users",
+            autoSubmitOnLoad: false,
+            loadingColspan: 4,
+            genericErrorDetail: "ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบช่วงวันที่หรือลองใหม่ภายหลัง"
+        });
+        this.type = type;
+        this.activeColor = "#FF7F50";
+        this.completedColor = "#4682B4";
+        if (autoSubmitOnLoad) {
+            this.generateReport();
+        }
+    }
+
+    async fetchData(startDate, endDate) {
+        const start = formatChristianDate(startDate);
+        const end = formatChristianDate(endDate);
+        const apiUrl = `${API_BASE_URL}/reports/${this.type}?startDate=${start}&endDate=${end}`;
+
+        try {
+            const response = await axios.get(apiUrl);
+            
             if (response.status !== 200) {
                 throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
             }
 
             const data = response.data;
             if (!data || !Array.isArray(data.x) || !Array.isArray(data.y1) || !Array.isArray(data.y2)) {
-                throw new Error('รูปแบบข้อมูลจาก API ไม่ถูกต้อง');
+                throw new Error("รูปแบบข้อมูลจาก API ไม่ถูกต้อง");
             }
 
             return {
-                title: data.title || (this.type === 2 ? 'รายงานจำนวนผู้เรียนในแต่ละหลักสูตร' : 'รายงานจำนวนผู้เรียนในแต่ละรายวิชา'),
+                title: data.title || (this.type === 2
+                    ? "รายงานจำนวนผู้เรียนในแต่ละหลักสูตร"
+                    : "รายงานจำนวนผู้เรียนในแต่ละรายวิชา"),
                 categories: data.x,
                 activeLearners: data.y1,
-                completedLearners: data.y2
+                completedLearners: data.y2,
+                isEmpty: data.x.length === 0
             };
-
         } catch (error) {
-            console.error('Error fetching data:', error);
+            if (axios.isAxiosError?.(error) && error.response?.status === 404) {
+                return {
+                    title: "ไม่พบข้อมูลในช่วงวันที่ที่เลือก",
+                    categories: [],
+                    activeLearners: [],
+                    completedLearners: [],
+                    isEmpty: true
+                };
+            }
             throw error;
         }
     }
 
-    async generateReport() {
-        if (!this.startDate || !this.endDate) {
-            this.showToast('กรุณาเลือกทั้งวันที่เริ่มต้นและสิ้นสุด');
-            return;
-        }
-
-        if (this.startDate > this.endDate) {
-            this.showToast('วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด');
-            return;
-        }
-
-        // ซ่อนผลลัพธ์เก่าและแสดง loading
-        this.hideError();
-        document.getElementById('results-container').classList.remove('show');
-        document.getElementById('loading').classList.add('show');
-
-        // ล้างตารางและกราฟเก่า
-        document.getElementById('table-body').innerHTML = '';
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
-            this.chartInstance = null;
-        }
-
-        // แสดงสถานะ loading ในตาราง
-        const loadingRow = document.createElement('tr');
-        loadingRow.innerHTML = `
-        <td colspan="4" style="text-align: center; color: #667eea;">
-            <div class="loading-spinner-small"></div>
-            กำลังโหลดข้อมูล...
-        </td>
-    `;
-        document.getElementById('table-body').appendChild(loadingRow);
-
-        try {
-            const data = await this.fetchCourseData(this.startDate, this.endDate);
-
-            // ล้างสถานะ loading
-            document.getElementById('table-body').innerHTML = '';
-
-            this.currentData = data;
-            this.renderTable(data);
-            this.renderChart(data);
-
-            const startStr = formatBuddhistDate(this.startDate);
-            const endStr = formatBuddhistDate(this.endDate);
-            document.getElementById("current-date-range").textContent =
-                `ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`;
-            document.getElementById("report-title").innerHTML =
-                `<i class="fas fa-users"></i> ${data.title}`;
-
-            document.getElementById('loading').classList.remove('show');
-            document.getElementById('results-container').classList.add('show');
-
-        } catch (error) {
-            console.error('Error:', error);
-            // ล้างสถานะ loading เมื่อเกิดข้อผิดพลาด
-            document.getElementById('table-body').innerHTML = '';
-
-            this.showError(
-                `เกิดข้อผิดพลาด: ${error.message}`,
-                'ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบช่วงวันที่หรือลองใหม่ภายหลัง'
-            );
-            document.getElementById('loading').classList.remove('show');
-        }
-    }
-
     renderTable(data) {
-        const tableBody = document.getElementById('table-body');
-        tableBody.innerHTML = '';
+        const tableBody = this.tableBody;
+        if (!tableBody) return;
 
-        if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="3" style="text-align: center; color: #ef4444;">ไม่มีข้อมูลหรือข้อมูลไม่ถูกต้อง</td>`;
-            tableBody.appendChild(row);
+        if (!data || !Array.isArray(data.categories) || !Array.isArray(data.activeLearners) || !Array.isArray(data.completedLearners)) {
+            tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ef4444;">ไม่มีข้อมูลหรือข้อมูลไม่ถูกต้อง</td></tr>`;
             return;
         }
+
         let totalActive = 0;
         let totalCompleted = 0;
+
+        tableBody.innerHTML = "";
+        if (data.categories.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ef4444;">ไม่พบข้อมูลในช่วงวันที่ที่เลือก</td></tr>`;
+            return;
+        }
+
         data.categories.forEach((category, index) => {
             const active = data.activeLearners[index] || 0;
             const completed = data.completedLearners[index] || 0;
+
             totalActive += active;
             totalCompleted += completed;
-            const row = document.createElement('tr');
+
+            const row = document.createElement("tr");
             row.innerHTML = `
-            <td>${category || (this.type === 2 ? 'ไม่มีชื่อหลักสูตร' : 'ไม่มีชื่อรายวิชา')}</td>
-            <td>${active.toLocaleString()}</td>
-            <td>${completed.toLocaleString()}</td>
-        `;
+                <td>${category || (this.type === 2 ? "ไม่มีชื่อหลักสูตร" : "ไม่มีชื่อรายวิชา")}</td>
+                <td>${active.toLocaleString()}</td>
+                <td>${completed.toLocaleString()}</td>
+            `;
             tableBody.appendChild(row);
         });
-        const totalRow = document.createElement('tr');
-        totalRow.style.fontWeight = 'bold';
-        totalRow.style.backgroundColor = '#f7fafc';
+
+        const totalRow = document.createElement("tr");
+        totalRow.style.fontWeight = "bold";
+        totalRow.style.backgroundColor = "#f7fafc";
         totalRow.innerHTML = `
             <td>รวม</td>
             <td>${totalActive.toLocaleString()}</td>
@@ -604,237 +824,32 @@ class CourseReportSystem {
         tableBody.appendChild(totalRow);
     }
 
-    generateColorPalette(count) {
-        const palette = [];
-        const hueStep = 360 / count;
-
-        for (let i = 0; i < count; i++) {
-            const hue = Math.floor(i * hueStep);
-            const saturation = 70 + Math.floor(Math.random() * 30);
-            const lightness = 50 + Math.floor(Math.random() * 20);
-            palette.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
-        }
-
-        return palette;
-    }
-
-    // renderChart(data) {
-    //     const ctx = document.getElementById('members-chart').getContext('2d');
-    //     if (this.chartInstance) {
-    //         this.chartInstance.destroy();
-    //     }
-    //     if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
-    //         return;
-    //     }
-
-    //     const count = data.categories.length;
-
-    //     const getScaleSettings = (dataCount) => {
-    //         if (dataCount <= 10) {
-    //             return {
-    //                 maxRotation: 0,
-    //                 minRotation: 0,
-    //                 fontSize: 12
-    //             };
-    //         } else if (dataCount <= 20) {
-    //             return {
-    //                 maxRotation: 30,
-    //                 minRotation: 30,
-    //                 fontSize: 10
-    //             };
-    //         } else if (dataCount <= 40) {
-    //             return {
-    //                 maxRotation: 60,
-    //                 minRotation: 60,
-    //                 fontSize: 9
-    //             };
-    //         } else {
-    //             return {
-    //                 maxRotation: 80,
-    //                 minRotation: 80,
-    //                 fontSize: 8
-    //             };
-    //         }
-    //     };
-
-    //     const scaleSettings = getScaleSettings(count);
-
-    //     const generateQualitativeColors = (numColors) => {
-    //         const baseColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b',
-    //             '#eb4d4b', '#6c5ce7', '#a29bfe', '#fd79a8', '#e84393',
-    //             '#00b894', '#00cec9', '#2d3436', '#636e72', '#74b9ff',
-    //             '#0984e3', '#fdcb6e', '#e17055', '#81ecec', '#00b894',
-    //             '#ff7675', '#fd79a8', '#6c5ce7', '#a29bfe', '#74b9ff',
-    //             '#55a3ff', '#26de81', '#feca57', '#ff9ff3', '#54a0ff',
-    //             '#5f27cd', '#00d2d3', '#ff9f43', '#ee5a24', '#0abde3',
-    //             '#006ba6', '#0582ca', '#00a6fb', '#0075f2', '#144fc6',
-    //             '#8e44ad', '#9b59b6', '#e74c3c', '#c0392b', '#f39c12',
-    //             '#d35400', '#27ae60', '#2ecc71', '#16a085', '#1abc9c',
-    //             '#34495e', '#2c3e50', '#95a5a6', '#7f8c8d', '#ecf0f1',
-    //             '#bdc3c7', '#3498db', '#2980b9', '#e67e22', '#d35400',
-    //             '#f1c40f', '#f39c12', '#2ecc71', '#27ae60', '#1abc9c',
-    //             '#e78ac3', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00',
-    //             '#ffff33', '#a65628', '#f781bf', '#999999', '#66c2a5',
-    //             '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f',
-    //             '#e5c494', '#b3b3b3', '#8dd3c7', '#ffffb3', '#bebada',
-    //             '#fb8072', '#80b1d3', '#fdb462', '#b3de69', '#fccde5',
-    //             '#d9d9d9', '#bc80bd', '#ccebc5', '#ffed6f', '#1b9e77',
-    //             '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02',
-    //             '#a6761d', '#666666', '#2ca02c', '#d62728', '#9467bd',
-    //             '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-    //         ];
-
-    //         const colors = [];
-
-    //         if (numColors <= baseColors.length) {
-    //             return baseColors.slice(0, numColors);
-    //         }
-
-    //         for (let i = 0; i < numColors; i++) {
-    //             if (i < baseColors.length) {
-    //                 colors.push(baseColors[i]);
-    //             } else {
-    //                 const hue = (i * 137.508) % 360;
-    //                 const saturation = 70 + (i % 4) * 5;
-    //                 const lightness = 45 + (Math.floor(i / 4) % 4) * 8;
-    //                 colors.push(`hsl(${Math.floor(hue)}, ${saturation}%, ${lightness}%)`);
-    //             }
-    //         }
-
-    //         return colors;
-    //     };
-
-    //     const baseColors = generateQualitativeColors(count);
-
-    //     const activeColors = [];
-    //     const completedColors = [];
-
-    //     for (let i = 0; i < count; i++) {
-    //         const baseColor = baseColors[i];
-    //         activeColors.push(baseColor);
-    //         let completedColor;
-    //         if (baseColor.startsWith('#')) {
-    //             completedColor = this.darkenHexColor(baseColor, 0.3);
-    //         } else {
-    //             completedColor = this.adjustHSLLightness(baseColor, -25);
-    //         }
-    //         completedColors.push(completedColor);
-    //     }
-
-    //     this.chartInstance = new Chart(ctx, {
-    //         type: 'bar',
-    //         data: {
-    //             labels: data.categories,
-    //             datasets: [
-    //                 {
-    //                     label: 'กำลังเรียน',
-    //                     data: data.activeLearners,
-    //                     backgroundColor: activeColors,
-    //                     borderColor: activeColors,
-    //                     borderWidth: 1
-    //                 },
-    //                 {
-    //                     label: 'เรียนจบ',
-    //                     data: data.completedLearners,
-    //                     backgroundColor: completedColors,
-    //                     borderColor: completedColors,
-    //                     borderWidth: 1
-    //                 }
-    //             ]
-    //         },
-    //         options: {
-    //             plugins: {
-    //                 legend: {
-    //                     display: false
-    //                 },
-    //                 tooltip: {
-    //                     callbacks: {
-    //                         label: function (context) {
-    //                             return `${context.dataset.label}: ${context.raw.toLocaleString()} คน`;
-    //                         }
-    //                     }
-    //                 }
-    //             },
-    //             responsive: true,
-    //             maintainAspectRatio: false,
-    //             scales: {
-    //                 x: {
-    //                     stacked: false,
-    //                     ticks: {
-    //                         maxRotation: scaleSettings.maxRotation,
-    //                         minRotation: scaleSettings.minRotation,
-    //                         font: {
-    //                             size: scaleSettings.fontSize
-    //                         }
-    //                     }
-    //                 },
-    //                 y: { beginAtZero: true }
-    //             }
-    //         }
-    //     });
-    // }
     renderChart(data) {
-        const ctx = document.getElementById('members-chart').getContext('2d');
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
-        }
-        if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
+        const ctx = this.chartContext;
+        if (!ctx || !data || !Array.isArray(data.categories) || !Array.isArray(data.activeLearners) || !Array.isArray(data.completedLearners)) {
             return;
         }
 
         const count = data.categories.length;
-
-        const getScaleSettings = (dataCount) => {
-            if (dataCount <= 10) {
-                return {
-                    maxRotation: 0,
-                    minRotation: 0,
-                    fontSize: 12
-                };
-            } else if (dataCount <= 20) {
-                return {
-                    maxRotation: 30,
-                    minRotation: 30,
-                    fontSize: 10
-                };
-            } else if (dataCount <= 40) {
-                return {
-                    maxRotation: 60,
-                    minRotation: 60,
-                    fontSize: 9
-                };
-            } else {
-                return {
-                    maxRotation: 80,
-                    minRotation: 80,
-                    fontSize: 8
-                };
-            }
-        };
-
-        const scaleSettings = getScaleSettings(count);
-
-        // Define our two contrasting colors
-        const activeColor = '#FF7F50';  // Coral (orange shade)
-        const completedColor = '#4682B4'; // Steel Blue
+        const scaleSettings = this.getScaleSettings(count);
 
         this.chartInstance = new Chart(ctx, {
-            type: 'bar',
+            type: "bar",
             data: {
                 labels: data.categories,
                 datasets: [
                     {
-                        label: 'ผู้ลงทะเบียน (คน)',
+                        label: "ผู้ลงทะเบียน (คน)",
                         data: data.activeLearners,
-                        backgroundColor: activeColor,
-                        borderColor: activeColor,
+                        backgroundColor: this.activeColor,
+                        borderColor: this.activeColor,
                         borderWidth: 1
                     },
                     {
-                        label: 'ผู้เรียนจบ (คน)',
+                        label: "ผู้เรียนจบ (คน)",
                         data: data.completedLearners,
-                        backgroundColor: completedColor,
-                        borderColor: completedColor,
+                        backgroundColor: this.completedColor,
+                        borderColor: this.completedColor,
                         borderWidth: 1
                     }
                 ]
@@ -843,20 +858,16 @@ class CourseReportSystem {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top',
+                        position: "top",
                         labels: {
                             usePointStyle: true,
                             padding: 20,
-                            font: {
-                                size: 12
-                            }
+                            font: { size: 12 }
                         }
                     },
                     tooltip: {
                         callbacks: {
-                            label: function (context) {
-                                return `${context.dataset.label}: ${context.raw.toLocaleString()}`;
-                            }
+                            label: (context) => `${context.dataset.label}: ${context.raw.toLocaleString()}`
                         }
                     }
                 },
@@ -868,16 +879,14 @@ class CourseReportSystem {
                         ticks: {
                             maxRotation: scaleSettings.maxRotation,
                             minRotation: scaleSettings.minRotation,
-                            font: {
-                                size: scaleSettings.fontSize
-                            }
+                            font: { size: scaleSettings.fontSize }
                         }
                     },
                     y: {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'จำนวน (คน)'
+                            text: "จำนวน (คน)"
                         }
                     }
                 }
@@ -885,265 +894,101 @@ class CourseReportSystem {
         });
     }
 
-    darkenHexColor(hex, factor) {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-
-        const newR = Math.floor(r * (1 - factor));
-        const newG = Math.floor(g * (1 - factor));
-        const newB = Math.floor(b * (1 - factor));
-
-        return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
-    }
-
-    adjustHSLLightness(hslColor, adjustment) {
-        const hslMatch = hslColor.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
-        if (!hslMatch) return hslColor;
-
-        const hue = parseInt(hslMatch[1]);
-        const saturation = parseInt(hslMatch[2]);
-        const lightness = Math.max(15, Math.min(85, parseInt(hslMatch[3]) + adjustment));
-
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    getScaleSettings(count) {
+        if (count <= 10) {
+            return { maxRotation: 0, minRotation: 0, fontSize: 12 };
+        }
+        if (count <= 20) {
+            return { maxRotation: 30, minRotation: 30, fontSize: 10 };
+        }
+        if (count <= 40) {
+            return { maxRotation: 60, minRotation: 60, fontSize: 9 };
+        }
+        return { maxRotation: 80, minRotation: 80, fontSize: 8 };
     }
 
     exportToExcel() {
-        if (!this.currentData || !this.startDate || !this.endDate) return;
+        if (!this.currentData || !this.startDate || !this.endDate) {
+            return;
+        }
 
         const excelData = [
-            [this.type === 2 ? 'หลักสูตร' : 'รายวิชา', 'ผู้ลงทะเบียน (คน)', 'ผู้เรียนจบ (คน)']
+            [this.type === 2 ? "หลักสูตร" : "รายวิชา", "ผู้ลงทะเบียน (คน)", "ผู้เรียนจบ (คน)"]
         ];
-        const totalActive = this.currentData.activeLearners.reduce((a, b) => a + b, 0);
-        const totalCompleted = this.currentData.completedLearners.reduce((a, b) => a + b, 0);
+
+        const totalActive = this.currentData.activeLearners.reduce((a, b) => a + (b || 0), 0);
+        const totalCompleted = this.currentData.completedLearners.reduce((a, b) => a + (b || 0), 0);
         const startStr = formatBuddhistDate(this.startDate);
         const endStr = formatBuddhistDate(this.endDate);
 
         this.currentData.categories.forEach((category, index) => {
             const active = this.currentData.activeLearners[index] || 0;
             const completed = this.currentData.completedLearners[index] || 0;
-
             excelData.push([
-                category || (this.type === 2 ? 'ไม่มีชื่อหลักสูตร' : 'ไม่มีชื่อรายวิชา'),
+                category || (this.type === 2 ? "ไม่มีชื่อหลักสูตร" : "ไม่มีชื่อรายวิชา"),
                 active,
-                completed,
-                // total
+                completed
             ]);
         });
 
-        excelData.push([
-            'รวม',
-            totalActive,
-            totalCompleted,
-        ]);
-
-
+        excelData.push(["รวม", totalActive, totalCompleted]);
         excelData.push([], [`ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`]);
 
         const ws = XLSX.utils.aoa_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, this.type === 2 ? "รายงานหลักสูตร" : "รายงานรายวิชา");
 
-        const startDateStr = this.startDate.toISOString().split('T')[0].replace(/-/g, '');
-        const endDateStr = this.endDate.toISOString().split('T')[0].replace(/-/g, '');
-        XLSX.writeFile(wb, `${this.type === 2 ? 'curriculum' : 'course'}-report.xlsx`);
-    }
-
-    showToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <div class="toast-content">${message}</div>
-        `;
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 5000);
-    }
-
-    showError(message, details = '') {
-        const errorMessage = document.getElementById('error-message');
-        document.getElementById('error-content').textContent = message;
-        document.getElementById('error-details').textContent = details;
-        errorMessage.classList.add('show');
-    }
-
-    hideError() {
-        document.getElementById('error-message').classList.remove('show');
+        XLSX.writeFile(wb, this.type === 2 ? "curriculum-report.xlsx" : "course-report.xlsx");
     }
 }
-class Report4 {
-    constructor(type = 4) {
-        this.chartInstance = null;
-        this.currentData = null;
-        this.startDate = null;
-        this.endDate = null;
-        this.type = type;
-        this.init();
+
+class Report4 extends DateRangeReport {
+    constructor() {
+        super({
+            startDateSelector: "#start-date",
+            endDateSelector: "#end-date",
+            submitButtonSelector: "#submit-btn",
+            exportButtonSelector: "#export-btn",
+            tableBodySelector: "#table-body",
+            chartElementId: "members-chart",
+            currentDateRangeLabelSelector: "#current-date-range",
+            reportTitleSelector: "#report-title",
+            titleIcon: "fas fa-users",
+            autoSubmitOnLoad: false,
+            loadingColspan: 4,
+            genericErrorDetail: "ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบช่วงวันที่หรือลองใหม่ภายหลัง"
+        });
+        this.type = 4;
+        this.activeColor = "#FF7F50";
+        this.completedColor = "#4682B4";
     }
-    init() {
-        setupThaiDatePicker('#start-date', (startDate) => {
-            this.startDate = startDate;
-            const buddhistDateStr = formatBuddhistDate(startDate);
-            document.getElementById("start-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
-        });
 
-        this.startDate = setDefaultThaiDate('#start-date');
-        document.getElementById("start-date").textContent =
-            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.startDate)}`;
-
-        setupThaiDatePicker('#end-date', (endDate) => {
-            this.endDate = endDate;
-            const buddhistDateStr = formatBuddhistDate(endDate);
-            document.getElementById("end-date").textContent = `ข้อมูล ณ วันที่ ${buddhistDateStr}`;
-        });
-
-        this.endDate = setDefaultThaiDate('#end-date');
-        document.getElementById("end-date").textContent =
-            `ข้อมูล ณ วันที่ ${formatBuddhistDate(this.endDate)}`;
-        this.updateDateDisplay();
-        this.setupEventListeners();
-        this.generateReport();
+    afterInit() {
         this.loadCourseList();
-
     }
-    async loadCourseList() {
-        const firstRow = document.getElementById('first-row');
-        const secondRow = document.getElementById('second-row');
-        const courseGrid = document.getElementById('course-grid');
-        const isWideScreen = window.innerWidth >= 1800;
 
-        if (!firstRow || !secondRow || !courseGrid) return;
-
-        // ซ่อนหรือแสดง layout ตามขนาดจอ
-        if (isWideScreen) {
-            firstRow.style.display = 'none';
-            secondRow.style.display = 'none';
-            courseGrid.style.display = 'grid';
-        } else {
-            firstRow.style.display = 'flex';
-            secondRow.style.display = 'flex';
-            courseGrid.style.display = 'none';
+    validateBeforeFetch() {
+        if (!super.validateBeforeFetch()) {
+            return false;
         }
+        if (this.getSelectedCourses().length === 0) {
+            showToast("กรุณาเลือกอย่างน้อยหนึ่งรายวิชา");
+            return false;
+        }
+        return true;
+    }
 
-        const groupNames = {
-            KD: '1. การพัฒนาองค์ความรู้ (KD)',
-            MS: '2. การพัฒนากรอบความคิด (MS)',
-            SL: '3. ทักษะเชิงยุทธศาสตร์ (SL)',
-            DS: '4. ทักษะดิจิทัล (DS)',
-            LS: '5. ทักษะด้านภาษา (LS)'
-        };
+    async fetchData(startDate, endDate) {
+        const selectedCourses = this.getSelectedCourses();
+        const courseQuery = selectedCourses.length > 0
+            ? `&selectedCourses=${selectedCourses.join(",")}`
+            : "";
 
+        const start = formatChristianDate(startDate);
+        const end = formatChristianDate(endDate);
+        const apiUrl = `${API_BASE_URL}/reports/${this.type}?startDate=${start}&endDate=${end}${courseQuery}`;
         try {
-            const response = await axios.get('https://learningportal.ocsc.go.th/learningspaceapi/courses');
-            const allCourses = response.data;
-
-            const groupOrder = ['KD', 'MS', 'SL', 'DS', 'LS'];
-
-            groupOrder.forEach((group, index) => {
-                const coursesInGroup = allCourses.filter(course =>
-                    course.code?.startsWith(group)
-                );
-
-                if (coursesInGroup.length > 0) {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'course-category';
-
-                    const title = document.createElement('div');
-                    title.className = 'category-title';
-                    title.textContent = groupNames[group] || group;
-
-                    const column = document.createElement('div');
-                    column.className = 'course-column';
-
-                    coursesInGroup.forEach(course => {
-                        const label = document.createElement('label');
-                        label.className = 'course-checkbox';
-
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.value = course.code;
-                        checkbox.className = 'course-filter';
-
-                        const courseText = document.createElement('span');
-                        courseText.textContent = `${course.code} - ${course.name}`;
-
-                        label.appendChild(checkbox);
-                        label.appendChild(courseText);
-                        column.appendChild(label);
-                    });
-
-                    wrapper.appendChild(title);
-                    wrapper.appendChild(column);
-
-                    const clone = wrapper.cloneNode(true);
-                    courseGrid.appendChild(wrapper);
-                    if (index < 3) {
-                        firstRow.appendChild(clone);
-                    } else {
-                        secondRow.appendChild(clone);
-                    }
-
-                }
-            });
-
-        } catch (error) {
-            console.error('ไม่สามารถโหลดรายวิชาได้:', error);
-            const container = document.getElementById('course-selection');
-            if (container) {
-                container.innerHTML = `<p class="error-message">เกิดข้อผิดพลาดในการโหลดรายวิชา</p>`;
-            }
-        }
-    }
-
-    updateDateDisplay() {
-        if (this.startDate && this.endDate) {
-            const startStr = formatBuddhistDate(this.startDate);
-            const endStr = formatBuddhistDate(this.endDate);
-            document.getElementById("current-date-range").textContent =
-                `ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`;
-        }
-    }
-    getSelectedCourses() {
-        const checkboxes = document.querySelectorAll('.course-filter:checked');
-        return Array.from(checkboxes).map(cb => cb.value);
-    }
-
-
-    formatChristianDate(date) {
-        return date.toISOString().split('T')[0];
-    }
-
-    setupEventListeners() {
-        document.getElementById('submit-btn').addEventListener('click', () => {
-            this.generateReport();
-        });
-
-        document.getElementById('export-btn').addEventListener('click', () => {
-            this.exportToExcel();
-        });
-    }
-
-    async fetchCourseData(startDate, endDate) {
-        try {
-            const selectedCourses = this.getSelectedCourses();
-            const courseQuery = selectedCourses.length > 0
-                ? `&selectedCourses=${selectedCourses.join(',')}`
-                : '';
-
-            const apiUrl = `https://learningportal.ocsc.go.th/learningspaceapi/reports/${this.type}?startDate=${this.formatChristianDate(startDate)}&endDate=${this.formatChristianDate(endDate)}${courseQuery}`;
-            if (selectedCourses.length === 0) {
-                throw new Error('กรุณาเลือกอย่างน้อยหนึ่งรายวิชา');
-            }
-            // console.log(`Fetching data from: ${apiUrl}`);
-
             const response = await axios.get(apiUrl);
-            // console.log(`Fetching data from: ${apiUrl}`);
 
             if (response.status !== 200) {
                 throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
@@ -1151,179 +996,68 @@ class Report4 {
 
             const data = response.data;
             if (!data || !Array.isArray(data.x) || !Array.isArray(data.y1) || !Array.isArray(data.y2)) {
-                throw new Error('รูปแบบข้อมูลจาก API ไม่ถูกต้อง');
+                throw new Error("รูปแบบข้อมูลจาก API ไม่ถูกต้อง");
             }
 
             return {
-                title: data.title || 'รายงานจำนวนผู้เรียนในแต่ละรายวิชา',
+                title: data.title || "รายงานจำนวนผู้เรียนในแต่ละรายวิชา",
                 categories: data.x,
                 activeLearners: data.y1,
                 completedLearners: data.y2,
-                trainees: data.trainees || [
-                    {
-                        "userType": "ประเภท",
-                        "nin": "เลขประจำตัวประชาชน",
-                        "title": "คำนำหน้า",
-                        "firstName": "ชื่อ",
-                        "lastName": "นามสกุล",
-                        "gender": "เพศ",
-                        "jobTitle": "ตำแหน่ง",
-                        "jobType": "ประเภทตำแหน่ง",
-                        "jobLevel": "ระดับตำแหน่ง",
-                        "ministry": "กระทรวง",
-                        "department": "กรม",
-                        "division": "กอง",
-                        "courseCode": "รหัสวิชา",
-                        "courseName": "ชื่อวิชา",
-                        "registrationDate": "วันเวลาที่ลงทะเบียนเรียน",
-                        "preTestScore": "คะแนน pre-test ที่ได้",
-                        "preTestFullScore": "คะแนนเต็ม pre-test",
-                        "postTestScore": "คะแนน post-test ที่ได้",
-                        "postTestFullScore": "คะแนนเต็ม post-test",
-                        "status": "สถานะ",
-                        "completeDate": "วันเวลาที่เรียนจบ"
-                    },
-                    {
-                        "userType": "เจ้าหน้าที่ของรัฐ",
-                        "nin": "xxxxxxxxxxxxx",
-                        "title": "นาย",
-                        "firstName": "ภาคิน",
-                        "lastName": "วิริยะโอฬาร",
-                        "gender": "ชาย",
-                        "jobTitle": "นักวิชาการคอมพิวเตอร์",
-                        "jobType": "พนักงานมหาวิทยาลัย",
-                        "jobLevel": "c5",
-                        "ministry": "กระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม",
-                        "department": "สำนักงานรัฐมนตรีกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม",
-                        "division": "มหาวิทยาลัยราขภัฏพระนคร",
-                        "courseCode": "DS26",
-                        "courseName": "AI Basic",
-                        "registrationDate": "6/1/2025 1:10:54 PM",
-                        "preTestScore": "0",
-                        "preTestFullScore": "30",
-                        "postTestScore": "0",
-                        "postTestFullScore": "30",
-                        "status": "กำลังศึกษา",
-                        "completeDate": "-"
-                    },
-                    {
-                        "userType": "ข้าราชการพลเรือนสามัญ",
-                        "nin": "xxxxxxxxxxxxx",
-                        "title": "นางสาว",
-                        "firstName": "จรูญรัตน์",
-                        "lastName": "ฉันท์ประภัสสร",
-                        "gender": "หญิง",
-                        "jobTitle": "นักวิเคราะห์นโยบายและแผน",
-                        "jobType": "วิชาการ",
-                        "jobLevel": "ระดับปฏิบัติการ",
-                        "ministry": "กระทรวงมหาดไทย",
-                        "department": "สำนักงานปลัดกระทรวงมหาดไทย",
-                        "division": "สำนักงานจังหวัดอุทัยธานี",
-                        "courseCode": "DS26",
-                        "courseName": "AI Basic",
-                        "registrationDate": "6/1/2025 2:00:39 PM",
-                        "preTestScore": "19",
-                        "preTestFullScore": "30",
-                        "postTestScore": "0",
-                        "postTestFullScore": "30",
-                        "status": "กำลังศึกษา",
-                        "completeDate": "-"
-                    }
-                ],
+                trainees: data.trainees || [],
+                isEmpty: data.x.length === 0
             };
-
         } catch (error) {
-            console.error('Error fetching data:', error);
+            if (axios.isAxiosError?.(error) && error.response?.status === 404) {
+                return {
+                    title: "ไม่พบข้อมูลในช่วงวันที่ที่เลือก",
+                    categories: [],
+                    activeLearners: [],
+                    completedLearners: [],
+                    trainees: [],
+                    isEmpty: true
+                };
+            }
             throw error;
         }
     }
 
-    async generateReport() {
-        if (!this.startDate || !this.endDate) {
-            this.showToast('กรุณาเลือกทั้งวันที่เริ่มต้นและสิ้นสุด');
-            return;
-        }
-
-        if (this.startDate > this.endDate) {
-            this.showToast('วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด');
-            return;
-        }
-        this.hideError();
-        document.getElementById('results-container').classList.remove('show');
-        document.getElementById('loading').classList.add('show');
-        document.getElementById('table-body').innerHTML = '';
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
-            this.chartInstance = null;
-        }
-        const loadingRow = document.createElement('tr');
-        loadingRow.innerHTML = `
-        <td colspan="4" style="text-align: center; color: #667eea;">
-            <div class="loading-spinner-small"></div>
-            กำลังโหลดข้อมูล...
-        </td>
-    `;
-        document.getElementById('table-body').appendChild(loadingRow);
-
-        try {
-            const data = await this.fetchCourseData(this.startDate, this.endDate);
-            document.getElementById('table-body').innerHTML = '';
-            console.log('Fetched data:', data);
-
-            this.currentData = data;
-            this.renderTable(data);
-            this.renderChart(data);
-
-            const startStr = formatBuddhistDate(this.startDate);
-            const endStr = formatBuddhistDate(this.endDate);
-            document.getElementById("current-date-range").textContent =
-                `ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`;
-            document.getElementById("report-title").innerHTML =
-                `<i class="fas fa-users"></i> ${data.title}`;
-
-            document.getElementById('loading').classList.remove('show');
-            document.getElementById('results-container').classList.add('show');
-
-        } catch (error) {
-            console.error('Error:', error);
-            document.getElementById('table-body').innerHTML = '';
-
-            this.showError(
-                `เกิดข้อผิดพลาด: ${error.message}`,
-                'ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบช่วงวันที่หรือลองใหม่ภายหลัง'
-            );
-            document.getElementById('loading').classList.remove('show');
-        }
-    }
-
     renderTable(data) {
-        const tableBody = document.getElementById('table-body');
-        tableBody.innerHTML = '';
+        const tableBody = this.tableBody;
+        if (!tableBody) return;
 
-        if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="3" style="text-align: center; color: #ef4444;">ไม่มีข้อมูลหรือข้อมูลไม่ถูกต้อง</td>`;
-            tableBody.appendChild(row);
+        if (!data || !Array.isArray(data.categories) || !Array.isArray(data.activeLearners) || !Array.isArray(data.completedLearners)) {
+            tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ef4444;">ไม่มีข้อมูลหรือข้อมูลไม่ถูกต้อง</td></tr>`;
             return;
         }
+
         let totalActive = 0;
         let totalCompleted = 0;
+
+        tableBody.innerHTML = "";
+        if (data.categories.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ef4444;">ไม่พบข้อมูลในช่วงวันที่ที่เลือก</td></tr>`;
+            return;
+        }
+
         data.categories.forEach((category, index) => {
             const active = data.activeLearners[index] || 0;
             const completed = data.completedLearners[index] || 0;
             totalActive += active;
             totalCompleted += completed;
-            const row = document.createElement('tr');
+
+            const row = document.createElement("tr");
             row.innerHTML = `
-            <td>${category || 'ไม่มีชื่อรายวิชา'}</td>
-            <td>${active.toLocaleString()}</td>
-            <td>${completed.toLocaleString()}</td>
-        `;
+                <td>${category || "ไม่มีชื่อรายวิชา"}</td>
+                <td>${active.toLocaleString()}</td>
+                <td>${completed.toLocaleString()}</td>
+            `;
             tableBody.appendChild(row);
         });
-        const totalRow = document.createElement('tr');
-        totalRow.style.fontWeight = 'bold';
-        totalRow.style.backgroundColor = '#f7fafc';
+
+        const totalRow = document.createElement("tr");
+        totalRow.style.fontWeight = "bold";
+        totalRow.style.backgroundColor = "#f7fafc";
         totalRow.innerHTML = `
             <td>รวม</td>
             <td>${totalActive.toLocaleString()}</td>
@@ -1332,111 +1066,32 @@ class Report4 {
         tableBody.appendChild(totalRow);
     }
 
-    generateColorPalette(count) {
-        const palette = [];
-        const hueStep = 360 / count;
-
-        for (let i = 0; i < count; i++) {
-            const hue = Math.floor(i * hueStep);
-            const saturation = 70 + Math.floor(Math.random() * 30);
-            const lightness = 50 + Math.floor(Math.random() * 20);
-            palette.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
-        }
-
-        return palette;
-    }
-
     renderChart(data) {
-        const ctx = document.getElementById('members-chart').getContext('2d');
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
-        }
-        if (!data || !data.categories || !data.activeLearners || !data.completedLearners) {
+        const ctx = this.chartContext;
+        if (!ctx || !data || !Array.isArray(data.categories) || !Array.isArray(data.activeLearners) || !Array.isArray(data.completedLearners)) {
             return;
         }
 
         const count = data.categories.length;
-
-        const getScaleSettings = (dataCount) => {
-            if (dataCount <= 3) {
-                return {
-                    maxRotation: 0,
-                    minRotation: 0,
-                    fontSize: 8
-                };
-            } else if (dataCount <= 6) {
-                return {
-                    maxRotation: 20,
-                    minRotation: 20,
-                    fontSize: 7
-                };
-            } else if (dataCount <= 10) {
-                return {
-                    maxRotation: 40,
-                    minRotation: 40,
-                    fontSize: 7
-                };
-            } else if (dataCount <= 15) {
-                return {
-                    maxRotation: 50,
-                    minRotation: 50,
-                    fontSize: 6
-                };
-            } else if (dataCount <= 20) {
-                return {
-                    maxRotation: 60,
-                    minRotation: 60,
-                    fontSize: 6
-                };
-            } else if (dataCount <= 30) {
-                return {
-                    maxRotation: 70,
-                    minRotation: 70,
-                    fontSize: 6
-                };
-            } else if (dataCount <= 40) {
-                return {
-                    maxRotation: 80,
-                    minRotation: 80,
-                    fontSize: 6
-                };
-            } else if (dataCount <= 50) {
-                return {
-                    maxRotation: 85,
-                    minRotation: 85,
-                    fontSize: 6
-                };
-            } else {
-                return {
-                    maxRotation: 90,
-                    minRotation: 90,
-                    fontSize: 6
-                };
-            }
-        };
-
-
-        const scaleSettings = getScaleSettings(count);
-        const activeColor = '#FF7F50';  // Coral (orange shade)
-        const completedColor = '#4682B4'; // Steel Blue
+        const scaleSettings = this.getScaleSettings(count);
 
         this.chartInstance = new Chart(ctx, {
-            type: 'bar',
+            type: "bar",
             data: {
                 labels: data.categories,
                 datasets: [
                     {
-                        label: 'ผู้ลงทะเบียน (คน)',
+                        label: "ผู้ลงทะเบียน (คน)",
                         data: data.activeLearners,
-                        backgroundColor: activeColor,
-                        borderColor: activeColor,
+                        backgroundColor: this.activeColor,
+                        borderColor: this.activeColor,
                         borderWidth: 1
                     },
                     {
-                        label: 'ผู้เรียนจบ (คน)',
+                        label: "ผู้เรียนจบ (คน)",
                         data: data.completedLearners,
-                        backgroundColor: completedColor,
-                        borderColor: completedColor,
+                        backgroundColor: this.completedColor,
+                        borderColor: this.completedColor,
                         borderWidth: 1
                     }
                 ]
@@ -1445,20 +1100,16 @@ class Report4 {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top',
+                        position: "top",
                         labels: {
                             usePointStyle: true,
                             padding: 20,
-                            font: {
-                                size: 12
-                            }
+                            font: { size: 12 }
                         }
                     },
                     tooltip: {
                         callbacks: {
-                            label: function (context) {
-                                return `${context.dataset.label}: ${context.raw.toLocaleString()}`;
-                            }
+                            label: (context) => `${context.dataset.label}: ${context.raw.toLocaleString()}`
                         }
                     }
                 },
@@ -1470,16 +1121,14 @@ class Report4 {
                         ticks: {
                             maxRotation: scaleSettings.maxRotation,
                             minRotation: scaleSettings.minRotation,
-                            font: {
-                                size: scaleSettings.fontSize
-                            }
+                            font: { size: scaleSettings.fontSize }
                         }
                     },
                     y: {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'จำนวน (คน)'
+                            text: "จำนวน (คน)"
                         }
                     }
                 }
@@ -1487,34 +1136,46 @@ class Report4 {
         });
     }
 
+    getScaleSettings(count) {
+        if (count <= 3) return { maxRotation: 0, minRotation: 0, fontSize: 8 };
+        if (count <= 6) return { maxRotation: 20, minRotation: 20, fontSize: 7 };
+        if (count <= 10) return { maxRotation: 40, minRotation: 40, fontSize: 7 };
+        if (count <= 15) return { maxRotation: 50, minRotation: 50, fontSize: 6 };
+        if (count <= 20) return { maxRotation: 60, minRotation: 60, fontSize: 6 };
+        if (count <= 30) return { maxRotation: 70, minRotation: 70, fontSize: 6 };
+        if (count <= 40) return { maxRotation: 80, minRotation: 80, fontSize: 6 };
+        if (count <= 50) return { maxRotation: 85, minRotation: 85, fontSize: 6 };
+        return { maxRotation: 90, minRotation: 90, fontSize: 6 };
+    }
+
     async exportToExcel() {
-        if (!this.currentData || !this.startDate || !this.endDate) return;
+        if (!this.currentData || !this.startDate || !this.endDate) {
+            return;
+        }
 
         const X = window.XlsxPopulate;
         const wb = await X.fromBlankAsync();
 
-        // ---------- Sheet1 ----------
         const excelData = [
-            ['รายวิชา', 'ผู้ลงทะเบียน (คน)', 'ผู้เรียนจบ (คน)']
+            ["รายวิชา", "ผู้ลงทะเบียน (คน)", "ผู้เรียนจบ (คน)"]
         ];
         const totalActive = this.currentData.activeLearners.reduce((a, b) => a + (b || 0), 0);
         const totalCompleted = this.currentData.completedLearners.reduce((a, b) => a + (b || 0), 0);
         const startStr = formatBuddhistDate(this.startDate);
         const endStr = formatBuddhistDate(this.endDate);
 
-        this.currentData.categories.forEach((category, i) => {
-            const active = this.currentData.activeLearners[i] || 0;
-            const completed = this.currentData.completedLearners[i] || 0;
-            excelData.push([category || 'ไม่มีชื่อรายวิชา', active, completed]);
+        this.currentData.categories.forEach((category, index) => {
+            const active = this.currentData.activeLearners[index] || 0;
+            const completed = this.currentData.completedLearners[index] || 0;
+            excelData.push([category || "ไม่มีชื่อรายวิชา", active, completed]);
         });
 
-        excelData.push(['รวม', totalActive, totalCompleted]);
+        excelData.push(["รวม", totalActive, totalCompleted]);
         excelData.push([], [`ข้อมูลระหว่างวันที่ ${startStr} ถึง ${endStr}`]);
 
-        const s1 = wb.addSheet("รายงานรายวิชา");
-        s1.cell("A1").value(excelData);
+        const courseSheet = wb.addSheet("รายงานรายวิชา");
+        courseSheet.cell("A1").value(excelData);
 
-        // ---------- Sheet2 ----------
         const trainees = this.currentData.trainees ?? [];
         const keys = [
             "userType", "nin", "title", "firstName", "lastName", "gender",
@@ -1529,69 +1190,134 @@ class Report4 {
             "คะแนนเต็ม pre-test ที่ได้", "คะแนน post-test", "คะแนนเต็ม post-test ที่ได้", "สถานะ", "วันเวลาที่เรียนจบ"
         ];
 
-        const rows = trainees.map(t => keys.map(k => t?.[k] ?? ""));
-        const s2 = wb.addSheet("รายชื่อผู้เข้าอบรม");
-        // s2.cell("A1").value([headers]);
-        if (rows.length) s2.cell("A1").value(rows);
+        const detailSheet = wb.addSheet("รายชื่อผู้เข้าอบรม");
+        const rows = [
+            headers,
+            ...trainees.map((t) => keys.map((key) => t?.[key] ?? ""))
+        ];
+        detailSheet.cell("A1").value(rows);
 
-        wb.deleteSheet("Sheet1"); 
+        wb.deleteSheet("Sheet1");
 
-        // ---------- Save ----------
-        const startDateStr = this.startDate.toISOString().slice(0, 10).replace(/-/g, '');
-        const endDateStr = this.endDate.toISOString().slice(0, 10).replace(/-/g, '');
-        const fname = `course-report-${startDateStr}-${endDateStr}.xlsx`;
+        const startDateStr = this.startDate.toISOString().slice(0, 10).replace(/-/g, "");
+        const endDateStr = this.endDate.toISOString().slice(0, 10).replace(/-/g, "");
+        const fileName = `course-report-${startDateStr}-${endDateStr}.xlsx`;
 
         const blob = await wb.outputAsync({
             type: "blob",
-            password: "csti-ocsc" 
+            password: "csti-ocsc"
         });
 
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = fname;
-        a.click();
-        URL.revokeObjectURL(a.href);
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(link.href);
     }
 
-    showToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <div class="toast-content">${message}</div>
-        `;
-        document.body.appendChild(toast);
+    async loadCourseList() {
+        const firstRow = document.getElementById("first-row");
+        const secondRow = document.getElementById("second-row");
+        const courseGrid = document.getElementById("course-grid");
+        const isWideScreen = window.innerWidth >= 1800;
 
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 5000);
+        if (!firstRow || !secondRow || !courseGrid) return;
+
+        if (isWideScreen) {
+            firstRow.style.display = "none";
+            secondRow.style.display = "none";
+            courseGrid.style.display = "grid";
+        } else {
+            firstRow.style.display = "flex";
+            secondRow.style.display = "flex";
+            courseGrid.style.display = "none";
+        }
+
+        const groupNames = {
+            KD: "1. การพัฒนาองค์ความรู้ (KD)",
+            MS: "2. การพัฒนากรอบความคิด (MS)",
+            SL: "3. ทักษะเชิงยุทธศาสตร์ (SL)",
+            DS: "4. ทักษะดิจิทัล (DS)",
+            LS: "5. ทักษะด้านภาษา (LS)"
+        };
+
+        try {
+            const response = await axios.get(`${API_BASE_URL}/courses`);
+            const allCourses = response.data;
+            const groupOrder = ["KD", "MS", "SL", "DS", "LS"];
+
+            groupOrder.forEach((group, index) => {
+                const coursesInGroup = allCourses.filter((course) =>
+                    course.code?.startsWith(group)
+                );
+
+                if (coursesInGroup.length === 0) return;
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "course-category";
+
+                const title = document.createElement("div");
+                title.className = "category-title";
+                title.textContent = groupNames[group] || group;
+
+                const column = document.createElement("div");
+                column.className = "course-column";
+
+                coursesInGroup.forEach((course) => {
+                    const label = document.createElement("label");
+                    label.className = "course-checkbox";
+
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.value = course.code;
+                    checkbox.className = "course-filter";
+
+                    const courseText = document.createElement("span");
+                    courseText.textContent = `${course.code} - ${course.name}`;
+
+                    label.appendChild(checkbox);
+                    label.appendChild(courseText);
+                    column.appendChild(label);
+                });
+
+                wrapper.appendChild(title);
+                wrapper.appendChild(column);
+
+                const clone = wrapper.cloneNode(true);
+                courseGrid.appendChild(wrapper);
+                if (index < 3) {
+                    firstRow.appendChild(clone);
+                } else {
+                    secondRow.appendChild(clone);
+                }
+            });
+        } catch (error) {
+            console.error("ไม่สามารถโหลดรายวิชาได้:", error);
+            const container = document.getElementById("course-selection");
+            if (container) {
+                container.innerHTML = `<p class="error-message">เกิดข้อผิดพลาดในการโหลดรายวิชา</p>`;
+            }
+        }
     }
 
-    showError(message, details = '') {
-        const errorMessage = document.getElementById('error-message');
-        document.getElementById('error-content').textContent = message;
-        document.getElementById('error-details').textContent = details;
-        errorMessage.classList.add('show');
-    }
-
-    hideError() {
-        document.getElementById('error-message').classList.remove('show');
+    getSelectedCourses() {
+        const checkboxes = document.querySelectorAll(".course-filter:checked");
+        return Array.from(checkboxes).map((checkbox) => checkbox.value);
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
     const path = window.location.pathname;
+    const reportMap = [
+        { match: "report1.html", factory: () => new MemberReport() },
+        { match: "report2.html", factory: () => new CourseReportSystem(2) },
+        { match: "report3.html", factory: () => new CourseReportSystem(3) },
+        { match: "report4.html", factory: () => new Report4() },
+        { match: "report5.html", factory: () => new ActiveUsersReport() }
+    ];
 
-    if (path.includes('report1.html')) {
-        new MemberReportSystem();
-    } else if (path.includes('report2.html')) {
-        new CourseReportSystem(2); // หลักสูตร
-    } else if (path.includes('report3.html')) {
-        new CourseReportSystem(3); // รายวิชา
-    } else if (path.includes('report4.html')) {
-        new Report4();
+    const entry = reportMap.find((item) => path.includes(item.match));
+    if (entry) {
+        entry.factory();
     }
 });
