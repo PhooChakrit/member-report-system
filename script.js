@@ -222,7 +222,7 @@ class BaseReport {
         }
     }
 
-    onAfterRender(_data) {}
+    onAfterRender(_data) { }
 }
 
 class SingleDateReport extends BaseReport {
@@ -276,7 +276,7 @@ class SingleDateReport extends BaseReport {
         }
     }
 
-    afterInit() {}
+    afterInit() { }
 
     updateCurrentDateLabel(date) {
         const label = this.getElement(this.config.currentDateLabelSelector);
@@ -344,9 +344,9 @@ class SingleDateReport extends BaseReport {
         throw new Error("fetchData must be implemented.");
     }
 
-    renderTable() {}
-    renderChart() {}
-    exportToExcel() {}
+    renderTable() { }
+    renderChart() { }
+    exportToExcel() { }
 }
 
 class MemberReport extends SingleDateReport {
@@ -636,7 +636,7 @@ class DateRangeReport extends BaseReport {
         }
     }
 
-    afterInit() {}
+    afterInit() { }
 
     updateDateRangeLabel() {
         const label = this.getElement(this.config.currentDateRangeLabelSelector);
@@ -709,9 +709,9 @@ class DateRangeReport extends BaseReport {
         throw new Error("fetchData must be implemented.");
     }
 
-    renderTable() {}
-    renderChart() {}
-    exportToExcel() {}
+    renderTable() { }
+    renderChart() { }
+    exportToExcel() { }
 }
 
 class CourseReportSystem extends DateRangeReport {
@@ -746,7 +746,7 @@ class CourseReportSystem extends DateRangeReport {
 
         try {
             const response = await axios.get(apiUrl);
-            
+
             if (response.status !== 200) {
                 throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
             }
@@ -1191,11 +1191,16 @@ class Report4 extends DateRangeReport {
         ];
 
         const detailSheet = wb.addSheet("รายชื่อผู้เข้าอบรม");
-        const rows = [
-            headers,
-            ...trainees.map((t) => keys.map((key) => t?.[key] ?? ""))
-        ];
-        detailSheet.cell("A1").value(rows);
+        // Skip first row if it's a header row from API
+        let traineeData = trainees;
+        if (trainees.length > 0 && trainees[0]?.userType === "ประเภท") {
+            traineeData = trainees.slice(1);
+        }
+        const traineeRows = traineeData.map((t) => keys.map((key) => t?.[key] ?? ""));
+        detailSheet.cell("A1").value([headers]);
+        if (traineeRows.length > 0) {
+            detailSheet.cell("A2").value(traineeRows);
+        }
 
         wb.deleteSheet("Sheet1");
 
