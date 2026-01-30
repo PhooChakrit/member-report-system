@@ -1181,13 +1181,15 @@ class Report4 extends DateRangeReport {
             "userType", "nin", "title", "firstName", "lastName", "gender",
             "jobTitle", "jobType", "jobLevel", "ministry", "department", "division",
             "courseCode", "courseName", "registrationDate", "preTestScore",
-            "preTestFullScore", "postTestScore", "postTestFullScore", "status", "completeDate"
+            "preTestFullScore", "postTestScore", "postTestFullScore", "status", "completeDate",
+            "education", "birthyear"
         ];
         const headers = [
             "ประเภท", "เลขประจำตัวประชาชน", "คำนำหน้า", "ชื่อ", "นามสกุล", "เพศ",
             "ตำแหน่ง", "ประเภทตำแหน่ง", "ระดับตำแหน่ง", "กระทรวง", "กรม", "กอง",
             "รหัสวิชา", "ชื่อวิชา", "วันเวลาที่ลงทะเบียนเรียน", "คะแนน pre-test ที่ได้",
-            "คะแนนเต็ม pre-test ที่ได้", "คะแนน post-test", "คะแนนเต็ม post-test ที่ได้", "สถานะ", "วันเวลาที่เรียนจบ"
+            "คะแนนเต็ม pre-test ที่ได้", "คะแนน post-test", "คะแนนเต็ม post-test ที่ได้", "สถานะ", "วันเวลาที่เรียนจบ",
+            "ระดับการศึกษา", "ปีเกิด"
         ];
 
         const detailSheet = wb.addSheet("รายชื่อผู้เข้าอบรม");
