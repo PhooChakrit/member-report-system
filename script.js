@@ -1368,3 +1368,27 @@ document.addEventListener("DOMContentLoaded", () => {
         entry.factory();
     }
 });
+
+// Auth Logic
+// Auth Logic
+// Add params token
+axios.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        config.params = config.params || {};
+        config.params.token = token;
+    }
+    return config;
+}, (error) => {
+    return Promise.reject(error);
+});
+
+// Global Error Handler
+axios.interceptors.response.use((response) => {
+    return response;
+}, (error) => {
+    if (error.response) {
+        showToast(`${error.response.status} ${error.response.statusText}`);
+    }
+    return Promise.reject(error);
+});
