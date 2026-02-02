@@ -1267,6 +1267,15 @@ class Report4 extends DateRangeReport {
                 title.className = "category-title";
                 title.textContent = groupNames[group] || group;
 
+                // เพิ่ม Search Input
+                const searchContainer = document.createElement("div");
+                searchContainer.className = "search-container";
+                const searchInput = document.createElement("input");
+                searchInput.type = "text";
+                searchInput.className = "search-input";
+                searchInput.placeholder = "ค้นหาวิชา...";
+                searchContainer.appendChild(searchInput);
+
                 const column = document.createElement("div");
                 column.className = "course-column";
 
@@ -1287,10 +1296,41 @@ class Report4 extends DateRangeReport {
                     column.appendChild(label);
                 });
 
+                // Logic สำหรับค้นหา
+                searchInput.addEventListener("input", (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    const checkboxes = column.querySelectorAll(".course-checkbox");
+                    checkboxes.forEach((cb) => {
+                        const text = cb.textContent.toLowerCase();
+                        if (text.includes(query)) {
+                            cb.classList.remove("hidden");
+                        } else {
+                            cb.classList.add("hidden");
+                        }
+                    });
+                });
+
                 wrapper.appendChild(title);
+                wrapper.appendChild(searchContainer);
                 wrapper.appendChild(column);
 
                 const clone = wrapper.cloneNode(true);
+                // เพราะ cloneNode(true) ไม่เอา event listener มาด้วย ต้องเพิ่มให้ clone
+                const cloneSearchInput = clone.querySelector(".search-input");
+                const cloneColumn = clone.querySelector(".course-column");
+                cloneSearchInput.addEventListener("input", (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    const checkboxes = cloneColumn.querySelectorAll(".course-checkbox");
+                    checkboxes.forEach((cb) => {
+                        const text = cb.textContent.toLowerCase();
+                        if (text.includes(query)) {
+                            cb.classList.remove("hidden");
+                        } else {
+                            cb.classList.add("hidden");
+                        }
+                    });
+                });
+
                 courseGrid.appendChild(wrapper);
                 if (index < 3) {
                     firstRow.appendChild(clone);
