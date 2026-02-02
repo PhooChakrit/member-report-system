@@ -1,467 +1,491 @@
 /* styles.css - แบบ 3:2 และจัดกลาง */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: 'Kanit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
-    color: #2d3748;
+  font-family: "Kanit", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+  color: #2d3748;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
 }
 @media (min-width: 1800px) {
-    .container {
-        max-width: 1800px;
-    }
-    
+  .container {
+    max-width: 1800px;
+  }
 }
 
 .header {
-    text-align: center;
-    margin-bottom: 30px;
-    color: white;
+  text-align: center;
+  margin-bottom: 30px;
+  color: white;
 }
 
 .header h1 {
-    font-size: 2rem;
-    font-weight: 500;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .section {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 25px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .section-title {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: #2d3748;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e2e8f0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 /* ส่วนเลือกวันที่ */
 .date-picker-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
 }
 
 .date-input-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
 }
 
 .date-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 300px;
 }
 
 .date-input-group label {
-    font-weight: 500;
-    color: #4a5568;
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  font-weight: 500;
+  color: #4a5568;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .date-input-wrapper {
-    position: relative;
-    width: 100%;
+  position: relative;
+  width: 100%;
 }
 
 .date-icon {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #667eea;
-    pointer-events: none;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #667eea;
+  pointer-events: none;
 }
 
 .date-input {
-    width: 100%;
-    padding: 12px 15px;
-    padding-right: 40px;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-    background: #f7fafc;
-    cursor: pointer;
-    font-family: 'Kanit', sans-serif;
+  width: 100%;
+  padding: 12px 15px;
+  padding-right: 40px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background: #f7fafc;
+  cursor: pointer;
+  font-family: "Kanit", sans-serif;
 }
 
 /* ส่วนเลือกวิชา - แบบ 3:2 และจัดกลาง */
 .course-selection-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
 }
 
 .course-row {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
 }
 
 .course-category {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 20px;
-    width: 100%;
-    min-width: 240px;
-    max-width: 320px;
-    transition: transform 0.3s ease;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  width: 100%;
+  min-width: 240px;
+  max-width: 320px;
+  transition: transform 0.3s ease;
 }
 
 .course-category:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .category-title {
-    font-weight: 600;
-    font-size: 1rem;
-    color: #2d3748;
-    padding: 12px;
-    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-    border-radius: 8px;
-    margin-bottom: 15px;
-    text-align: center;
-    /* border-left: 4px solid #667eea; */
+  font-weight: 600;
+  font-size: 1rem;
+  color: #2d3748;
+  padding: 12px;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+  /* border-left: 4px solid #667eea; */
+}
+
+.search-container {
+  padding: 0 10px 10px 10px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: "Kanit", sans-serif;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.course-checkbox.hidden {
+  display: none !important;
 }
 
 .course-column {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
 .course-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    font-size: 0.9rem;
-    background: #f8fafc;
-    border-radius: 6px;
-    transition: all 0.2s;
-    cursor: pointer;
-    border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
 }
 
 .course-checkbox:hover {
-    background: #ebf4ff;
-    border-color: #a3bffa;
+  background: #ebf4ff;
+  border-color: #a3bffa;
 }
 
 .course-checkbox input[type="checkbox"] {
-    min-width: 18px;
-    min-height: 18px;
-    accent-color: #667eea;
-    cursor: pointer;
+  min-width: 18px;
+  min-height: 18px;
+  accent-color: #667eea;
+  cursor: pointer;
 }
 
 /* ปุ่มต่างๆ */
 .submit-btn-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .submit-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
 }
 
 /* ส่วนผลลัพธ์ */
 .current-date-range {
-    text-align: center;
-    color: #667ee4;
-    font-weight: 600;
-    margin-bottom: 20px;
-    font-size: 1.1rem;
-    padding: 10px;
-    background: rgba(102, 126, 234, 0.1);
-    border-radius: 8px;
+  text-align: center;
+  color: #667ee4;
+  font-weight: 600;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+  padding: 10px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
 }
 
 /* ตารางผลลัพธ์ */
 .table-wrapper {
-    width: 100%;
-    overflow-x: auto;
-    margin-bottom: 15px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 600px;
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
 }
 
 th {
-    background: #f7fafc;
-    padding: 15px;
-    text-align: left;
-    font-weight: 600;
-    color: #2d3748;
-    border-bottom: 2px solid #e2e8f0;
-    font-size: 0.95rem;
+  background: #f7fafc;
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #2d3748;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.95rem;
 }
 
 td {
-    padding: 15px;
-    border-bottom: 1px solid #e2e8f0;
-    color: #4a5568;
-    font-size: 0.95rem;
+  padding: 15px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #4a5568;
+  font-size: 0.95rem;
 }
 
 tr:hover {
-    background: #f8fafc;
+  background: #f8fafc;
 }
 
 /* ส่วนกราฟ */
 .chart-container {
-    position: relative;
-    height: 400px;
-    width: 100%;
-    margin-top: 20px;
+  position: relative;
+  height: 400px;
+  width: 100%;
+  margin-top: 20px;
 }
 
 /* ปุ่ม Export */
 .export-btn {
-    background: #48bb78;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.95rem;
-    font-family: 'Kanit', sans-serif;
-    margin-top: 10px;
+  background: #48bb78;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-family: "Kanit", sans-serif;
+  margin-top: 10px;
 }
 
 .export-btn:hover {
-    background: #38a169;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(56, 161, 105, 0.3);
+  background: #38a169;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(56, 161, 105, 0.3);
 }
 
 /* Responsive Design */
 @media (max-width: 1100px) {
-    .course-row {
-        flex-wrap: wrap;
-    }
+  .course-row {
+    flex-wrap: wrap;
+  }
 
-    .course-category {
-        min-width: 280px;
-        max-width: 100%;
-    }
+  .course-category {
+    min-width: 280px;
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
-    .header h1 {
-        font-size: 1.6rem;
-    }
+  .header h1 {
+    font-size: 1.6rem;
+  }
 
-    .section {
-        padding: 20px 15px;
-    }
+  .section {
+    padding: 20px 15px;
+  }
 
-    .section-title {
-        font-size: 1.2rem;
-    }
+  .section-title {
+    font-size: 1.2rem;
+  }
 
-    .course-row {
-        flex-direction: column;
-        align-items: center;
-    }
+  .course-row {
+    flex-direction: column;
+    align-items: center;
+  }
 
-    .course-category {
-        width: 100%;
-        max-width: 400px;
-    }
+  .course-category {
+    width: 100%;
+    max-width: 400px;
+  }
 }
 
 @media (max-width: 480px) {
-    .header h1 {
-        font-size: 1.4rem;
-    }
+  .header h1 {
+    font-size: 1.4rem;
+  }
 
-    .section-title {
-        font-size: 1.1rem;
-    }
+  .section-title {
+    font-size: 1.1rem;
+  }
 
-    .current-date-range {
-        font-size: 1rem;
-    }
+  .current-date-range {
+    font-size: 1rem;
+  }
 
-    .submit-btn,
-    .export-btn {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
+  .submit-btn,
+  .export-btn {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
 
-    .chart-container {
-        height: 300px;
-    }
+  .chart-container {
+    height: 300px;
+  }
 }
 
 /* Scrollbar */
 .course-column::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 
 .course-column::-webkit-scrollbar-thumb {
-    background: #cbd5e0;
-    border-radius: 4px;
+  background: #cbd5e0;
+  border-radius: 4px;
 }
 
 .course-column::-webkit-scrollbar-thumb:hover {
-    background: #a0aec0;
+  background: #a0aec0;
 }
 
 /* Loading และ Error Message */
 .loading {
-    display: none;
-    text-align: center;
-    padding: 40px;
-    color: #667eea;
+  display: none;
+  text-align: center;
+  padding: 40px;
+  color: #667eea;
 }
 
 .loading.show {
-    display: block;
+  display: block;
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #e2e8f0;
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 15px;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
+  0% {
+    transform: rotate(0deg);
+  }
 
-    100% {
-        transform: rotate(360deg);
-    }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-message {
-    display: none;
-    color: #ef4444;
-    text-align: center;
-    padding: 15px;
-    font-weight: 500;
-    margin: 15px 0;
-    background: rgba(239, 68, 68, 0.1);
-    border-radius: 8px;
-    border-left: 4px solid #ef4444;
+  display: none;
+  color: #ef4444;
+  text-align: center;
+  padding: 15px;
+  font-weight: 500;
+  margin: 15px 0;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #ef4444;
 }
 
 .error-message.show {
-    display: block;
+  display: block;
 }
 
 .error-details {
-    font-size: 0.85rem;
-    margin-top: 8px;
-    color: #7f1d1d;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  color: #7f1d1d;
 }
 
 @media (min-width: 1800px) {
+  #first-row,
+  #second-row {
+    display: none !important;
+  }
 
-    #first-row,
-    #second-row {
-        display: none !important;
-    }
-
-    #course-grid {
-        display: grid !important;
-        grid-template-columns: repeat(5, 1fr);
-        /* ✅ ตรงนี้แหละที่หายไป */
-        gap: 20px;
-        width: 100%;
-    }
+  #course-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr);
+    /* ✅ ตรงนี้แหละที่หายไป */
+    gap: 20px;
+    width: 100%;
+  }
 }
 
-
 @media (max-width: 1799px) {
+  #first-row,
+  #second-row {
+    display: flex !important;
+  }
 
-    #first-row,
-    #second-row {
-        display: flex !important;
-    }
-
-    #course-grid {
-        display: none !important;
-    }
+  #course-grid {
+    display: none !important;
+  }
 }
