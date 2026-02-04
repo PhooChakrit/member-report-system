@@ -1375,8 +1375,7 @@ document.addEventListener("DOMContentLoaded", () => {
 axios.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
     if (token) {
-        config.params = config.params || {};
-        config.params.token = token;
+        config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
 }, (error) => {
